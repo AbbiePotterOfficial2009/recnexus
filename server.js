@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(targetEmail, subject, htmlContent) {
     try {
         await transporter.sendMail({
-            from: '\"RecNexus Support\" <recnexussupport@gmail.com>',
+            from: '"RecNexus Support" <recnexussupport@gmail.com>',
             to: targetEmail,
             subject: subject,
             html: htmlContent
@@ -129,7 +129,7 @@ app.post('/api/owner/create-account', (req, res) => {
     };
 
     usersDB.push(newUser);
-    res.json({ success: true, message: Account for \ created successfully with role \! });
+    res.json({ success: true, message: Account for  created successfully with role ! });
 });
 
 app.post('/api/auth/login', (req, res) => {
