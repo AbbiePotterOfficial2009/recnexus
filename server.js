@@ -60,6 +60,19 @@ const usersDB = [
         resetToken: null,
         resetExpires: null,
         createdAt: new Date().toISOString()
+    },
+    {
+        id: 'usr_support_101',
+        username: 'RecNexusSupport',
+        gamertag: 'RecNexusSupport',
+        email: 'recnexussupport@gmail.com',
+        passwordHash: bcrypt.hashSync('Password123!', 10),
+        role: 'PLAYER',
+        isVerified: true,
+        verificationCode: null,
+        resetToken: null,
+        resetExpires: null,
+        createdAt: new Date().toISOString()
     }
 ];
 
