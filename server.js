@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -63,7 +63,7 @@ const usersDB = [
     }
 ];
 
-# --- AUTH ENDPOINTS ---
+// --- AUTH ENDPOINTS ---
 app.post('/api/auth/register', async (req, res) => {
     const { gamertag, email, password } = req.body;
     if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: "All fields are required." });
@@ -72,7 +72,6 @@ app.post('/api/auth/register', async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const lowerGamertag = cleanGamertag.toLowerCase();
 
-    // Allow exemption for AbbiePotterOfficial specifically, but block other restricted system combinations
     if (lowerGamertag !== 'abbiepotterofficial' && RESERVED_NAMES.some(r => lowerGamertag.includes(r))) {
         return res.status(400).json({ success: false, message: "This username contains reserved system terms." });
     }
@@ -81,14 +80,10 @@ app.post('/api/auth/register', async (req, res) => {
         return res.status(400).json({ success: false, message: "Email already exists." });
     }
 
-    // Check if gamertag is already taken by someone else
     if (usersDB.some(u => u.gamertag.toLowerCase() === lowerGamertag)) {
         return res.status(400).json({ success: false, message: "Gamertag is already taken." });
     }
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Auto-grant ADMIN role if registering as AbbiePotterOfficial
     const userRole = (lowerGamertag === 'abbiepotterofficial') ? 'ADMIN' : 'PLAYER';
 
     usersDB.push({
@@ -98,7 +93,7 @@ app.post('/api/auth/register', async (req, res) => {
         email: cleanEmail,
         passwordHash: bcrypt.hashSync(password, 10),
         role: userRole,
-        isVerified: true, // Auto-verify owner exemption if desired, or require PIN
+        isVerified: true,
         verificationCode: null,
         createdAt: new Date().toISOString()
     });
