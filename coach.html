@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecNexus - Coach Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0d12; color: #ffffff; padding: 40px; }
+        .container { max-width: 900px; margin: 0 auto; background: #161622; border: 1px solid #f26322; border-radius: 12px; padding: 30px; }
+        h1 { color: #f26322; margin-bottom: 10px; }
+        p { color: #a0a0b0; margin-bottom: 20px; }
+        .roster-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #12121c; border-radius: 8px; overflow: hidden; }
+        .roster-table th, .roster-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #2a2a38; font-size: 14px; }
+        .roster-table th { background: #1c1c2e; color: #f26322; }
+        .back-link { display: inline-block; color: #f26322; text-decoration: none; font-weight: bold; margin-top: 25px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Coach Dashboard</h1>
+        <p>Welcome, Coach. Manage your active squad rosters, training schedules, and team strategies.</p>
+        
+        <div style="margin-top: 20px;">
+            <h3 style="color: #fff; margin-bottom: 10px;">Active Squad Roster</h3>
+            <table class="roster-table">
+                <thead>
+                    <tr>
+                        <th>Player Gamertag</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Coach_Level99</td>
+                        <td>Team Lead / Coach</td>
+                        <td style="color: #2ecc71;">Active</td>
+                    </tr>
+                    <tr>
+                        <td>StrikerPro_01</td>
+                        <td>Forward</td>
+                        <td style="color: #2ecc71;">Ready</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/dashboard.html" class="back-link">← Return to Player Dashboard</a>
+    </div>
+
+    <script>
+        async function verifyCoachAccess() {
+            const res = await fetch('/api/auth/session');
+            const data = await res.json();
+            if (!data.loggedIn || (data.user.role !== 'ADMIN' && data.user.role !== 'COACH')) {
+                alert('Access Denied: Coaches & Admins Only.');
+                window.location.href = '/dashboard.html';
+            }
+        }
+        verifyCoachAccess();
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecNexus - Player Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0d12; color: #ffffff; }
+        header { background: #12121c; border-bottom: 1px solid #1f1f2e; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 22px; font-weight: bold; color: #f26322; text-decoration: none; }
+        .user-info { display: flex; gap: 15px; align-items: center; }
+        .logout-btn { background: #2a2a38; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .logout-btn:hover { background: #e74c3c; }
+
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        h1 { font-size: 28px; margin-bottom: 10px; color: #fff; }
+        p.subtitle { color: #a0a0b0; margin-bottom: 30px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .dash-card { background: #161622; border: 1px solid #222233; border-radius: 12px; padding: 25px; }
+        .dash-card h3 { color: #f26322; margin-bottom: 10px; font-size: 18px; }
+        .dash-card p { color: #9090a0; font-size: 14px; margin-bottom: 15px; }
+        
+        .role-box { border: 2px solid #f26322; display: none; }
+        .dash-link { display: inline-block; background: #f26322; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+        .dash-link:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo">⚡ RecNexus Dashboard</a>
+        <div class="user-info">
+            <span id="welcomeUser">Loading profile...</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Player Overview</h1>
+        <p class="subtitle">Welcome back to your central hub.</p>
+
+        <div class="dashboard-grid">
+            <div class="dash-card">
+                <h3>🎮 Gamertag & Stats</h3>
+                <p>View your competitive standing, match history, and player telemetry.</p>
+                <span id="playerTag" style="color: #f26322; font-weight: bold;">--</span>
+            </div>
+
+            <div class="dash-card">
+                <h3>🛡️ Account Security</h3>
+                <p>Manage passwords or secure your account credentials.</p>
+                <a href="/forgot-password.html" class="dash-link" style="background: #2a2a38; font-size: 13px; padding: 8px 14px;">Reset Password →</a>
+            </div>
+
+            <!-- COACH DASHBOARD CARD (Visible for Coach / Admin users) -->
+            <div class="dash-card role-box" id="coachCard">
+                <h3>📋 Coach Dashboard</h3>
+                <p>Manage team rosters, review match replays, and coordinate player strategy.</p>
+                <a href="/coach.html" class="dash-link">Launch Coach Dashboard →</a>
+            </div>
+
+            <!-- ADMIN CONTROL PANEL CARD (Visible for ADMIN users) -->
+            <div class="dash-card role-box" id="adminCard">
+                <h3>⚙️ Admin Control Panel</h3>
+                <p>Restricted access: Manage system nodes, server variables, and user lists.</p>
+                <a href="/admin.html" class="dash-link">Launch Admin Panel →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchSession() {
+            try {
+                const res = await fetch('/api/auth/session');
+                const data = await res.json();
+                if (!data.loggedIn) {
+                    window.location.href = '/';
+                    return;
+                }
+                document.getElementById('welcomeUser').textContent = `Logged in as: ${data.user.gamertag} (${data.user.role})`;
+                document.getElementById('playerTag').textContent = `Gamertag: ${data.user.gamertag}`;
+
+                // Show Coach dashboard link for ADMIN or users with Coach roles
+                if (data.user.role === 'ADMIN' || data.user.role === 'COACH') {
+                    document.getElementById('coachCard').style.display = 'block';
+                }
+                // Show Admin control panel for ADMIN users
+                if (data.user.role === 'ADMIN') {
+                    document.getElementById('adminCard').style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Session check failed", err);
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+
+        fetchSession();
+    </script>
+</body>
+</html>

@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
-const { exec } = require('child_process');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -23,7 +22,6 @@ app.use(session({
     cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// --- NODEMAILER EMAIL TRANSPORTER CONFIGURATION ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -32,31 +30,23 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper Function to Send Live Emails
 async function sendEmail(targetEmail, subject, htmlContent) {
-    const mailOptions = {
-        from: '"RecNexus Support" <recnexussupport@gmail.com>',
-        to: targetEmail,
-        subject: subject,
-        html: htmlContent
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`[EMAIL SENT] Delivered to ${targetEmail}`);
+        await transporter.sendMail({
+            from: '"RecNexus Support" <recnexussupport@gmail.com>',
+            to: targetEmail,
+            subject: subject,
+            html: htmlContent
+        });
         return true;
     } catch (error) {
-        console.error(`[EMAIL ERROR] Failed to send email to ${targetEmail}:`, error);
+        console.error(`[EMAIL ERROR]:`, error);
         return false;
     }
 }
 
-const RESERVED_NAMES = [
-    'coach', 'admin', 'administrator', 'staff', 'support', 
-    'moderator', 'mod', 'system', 'recnexus', 'official', 'owner', 'host', 'help'
-];
+const RESERVED_NAMES = ['coach', 'admin', 'administrator', 'staff', 'support', 'moderator', 'mod', 'system', 'recnexus', 'official', 'owner', 'host', 'help'];
 
-// --- DATABASES ---
 const usersDB = [
     {
         id: "usr_admin_100",
@@ -73,35 +63,24 @@ const usersDB = [
     }
 ];
 
-// --- AUTHENTICATION ENDPOINTS ---
-
-// Register & Dispatch Live Email PIN
+# --- AUTH ENDPOINTS ---
 app.post('/api/auth/register', async (req, res) => {
     const { gamertag, email, password } = req.body;
-
-    if (!gamertag || !email || !password) {
-        return res.status(400).json({ success: false, message: "Gamertag, Email, and Password are all required." });
-    }
+    if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: "All fields are required." });
 
     const cleanGamertag = gamertag.trim();
     const cleanEmail = email.trim().toLowerCase();
-    const normalizedGamertag = cleanGamertag.toLowerCase();
 
-    if (RESERVED_NAMES.some(r => normalizedGamertag.includes(r))) {
-        return res.status(400).json({ success: false, message: `The username '${cleanGamertag}' contains reserved terms.` });
-    }
-
-    if (usersDB.some(u => u.gamertag.toLowerCase() === normalizedGamertag)) {
-        return res.status(400).json({ success: false, message: "This gamertag is already taken." });
+    if (RESERVED_NAMES.some(r => cleanGamertag.toLowerCase().includes(r))) {
+        return res.status(400).json({ success: false, message: "This username contains reserved terms." });
     }
 
     if (usersDB.some(u => u.email.toLowerCase() === cleanEmail)) {
-        return res.status(400).json({ success: false, message: "An account with this email already exists." });
+        return res.status(400).json({ success: false, message: "Email already exists." });
     }
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const newUser = {
+    usersDB.push({
         id: `usr_${Date.now()}`,
         username: cleanGamertag,
         gamertag: cleanGamertag,
@@ -110,78 +89,39 @@ app.post('/api/auth/register', async (req, res) => {
         role: "PLAYER",
         isVerified: false,
         verificationCode,
-        resetToken: null,
-        resetExpires: null,
         createdAt: new Date().toISOString()
-    };
-
-    usersDB.push(newUser);
-
-    const emailHtml = `
-        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; border-radius: 10px;">
-            <h2 style="color: #f26322;">Welcome to RecNexus, ${cleanGamertag}!</h2>
-            <p>Thank you for creating an account. Please use the verification code below:</p>
-            <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 5px; color: #333; border: 2px dashed #f26322;">
-                ${verificationCode}
-            </div>
-            <p style="margin-top: 20px; font-size: 12px; color: #777;">If you did not request this code, please ignore this email.</p>
-        </div>
-    `;
-
-    await sendEmail(cleanEmail, '🎮 Your RecNexus Verification PIN', emailHtml);
-
-    res.json({
-        success: true,
-        requiresVerification: true,
-        email: cleanEmail,
-        message: `Account created! A 6-digit PIN has been emailed to ${cleanEmail}.`
     });
+
+    await sendEmail(cleanEmail, '🎮 RecNexus Verification PIN', `<h2>Your PIN: <b>${verificationCode}</b></h2>`);
+    res.json({ success: true, requiresVerification: true, email: cleanEmail, message: "Verification PIN sent to email." });
 });
 
-// Verify Code Endpoint
 app.post('/api/auth/verify', (req, res) => {
     const { email, code } = req.body;
-    if (!email || !code) return res.status(400).json({ success: false, message: "Email and PIN code are required." });
-
     const user = usersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!user) return res.status(404).json({ success: false, message: "Account not found." });
-
-    if (user.isVerified) return res.json({ success: true, message: "Account is already verified!" });
-
-    if (user.verificationCode !== code.trim()) {
-        return res.status(400).json({ success: false, message: "Invalid verification PIN code." });
-    }
+    if (!user || user.verificationCode !== code.trim()) return res.status(400).json({ success: false, message: "Invalid PIN." });
 
     user.isVerified = true;
     user.verificationCode = null;
-
-    res.json({ success: true, message: "Email verified successfully! You can now log in." });
+    res.json({ success: true, message: "Verified successfully!" });
 });
 
-// Login Endpoint
 app.post('/api/auth/login', (req, res) => {
     const { gamertag, password } = req.body;
     const user = usersDB.find(u => u.gamertag.toLowerCase() === gamertag.toLowerCase() || u.email.toLowerCase() === gamertag.toLowerCase());
 
-    if (!user) return res.status(401).json({ success: false, message: "Account not found." });
-
-    const isMatch = bcrypt.compareSync(password, user.passwordHash);
-    if (!isMatch) return res.status(401).json({ success: false, message: "Invalid password." });
+    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+        return res.status(401).json({ success: false, message: "Invalid login credentials." });
+    }
 
     if (!user.isVerified && user.role === 'PLAYER') {
-        return res.status(403).json({
-            success: false,
-            needsVerification: true,
-            email: user.email,
-            message: "Your account is not verified yet. Please enter the PIN sent to your email."
-        });
+        return res.status(403).json({ success: false, needsVerification: true, email: user.email, message: "Account not verified." });
     }
 
     req.session.user = { id: user.id, username: user.username, gamertag: user.gamertag, email: user.email, role: user.role };
-    res.json({ success: true, message: `Welcome back, ${user.gamertag}!`, user: req.session.user });
+    res.json({ success: true, redirectUrl: '/dashboard.html', user: req.session.user });
 });
 
-// Forgot Password Endpoint
 app.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email is required." });
@@ -190,28 +130,26 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     if (user) {
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.resetToken = resetToken;
-        user.resetExpires = Date.now() + 3600000; // 1 hour
-
+        user.resetExpires = Date.now() + 3600000;
         const resetLink = `http://localhost:${PORT}/reset-password.html?token=${resetToken}`;
-        const emailHtml = `
-            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #fff; padding: 30px; border-radius: 12px;">
-                <h2 style="color: #f26322;">RecNexus Password Reset</h2>
-                <p>You requested to reset your password. Click the secure button below:</p>
-                <a href="${resetLink}" style="display: inline-block; background: linear-gradient(135deg, #f26322, #ff3366); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 15px;">Reset Password</a>
-                <p style="margin-top: 25px; font-size: 12px; color: #a0a0b0;">If you didn't request this, you can safely ignore this email.</p>
-            </div>
-        `;
-
-        await sendEmail(user.email, '🔐 RecNexus Password Reset Request', emailHtml);
+        await sendEmail(user.email, '🔐 RecNexus Password Reset Request', `<p>Click here to reset your password: <a href="${resetLink}">Reset Password</a></p>`);
     }
-
     res.json({ success: true, message: "If an account with that email exists, a reset link has been sent." });
+});
+
+app.get('/api/auth/session', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ loggedIn: false });
+    res.json({ loggedIn: true, user: req.session.user });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.json({ success: true });
+    });
 });
 
 app.use(express.static(__dirname));
 
 server.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(` RecNexus v3.3 Master Server Running on Port ${PORT} `);
-    console.log(`====================================================`);
+    console.log(`RecNexus Master Server running on port ${PORT}`);
 });
