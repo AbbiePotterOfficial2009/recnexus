@@ -7,19 +7,15 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0d0d12; color: #ffffff; line-height: 1.6; }
-        
-        /* Navigation Bar */
         header { background: #12121c; border-bottom: 1px solid #1f1f2e; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .logo { font-size: 24px; font-weight: bold; color: #f26322; text-decoration: none; display: flex; align-items: center; gap: 10px; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links a { color: #b0b0c0; text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s; }
+        .nav-links a { color: #b0b0c0; text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s; cursor: pointer; }
         .nav-links a:hover { color: #f26322; }
         .btn-auth { background: linear-gradient(135deg, #f26322, #ff3366); color: white; padding: 8px 18px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 14px; }
-        .btn-auth:hover { opacity: 0.9; }
-
-        /* Hero Section */
+        
         .hero { padding: 80px 20px; text-align: center; background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d12 70%); }
-        .hero h1 { font-size: 48px; margin-bottom: 20px; color: #ffffff; letter-spacing: -1px; }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; color: #ffffff; }
         .hero h1 span { color: #f26322; }
         .hero p { font-size: 18px; color: #a0a0b0; max-width: 650px; margin: 0 auto 30px auto; }
         .hero-btns { display: flex; justify-content: center; gap: 15px; }
@@ -27,96 +23,198 @@
         .btn-secondary { background: #1a1a24; color: #fff; border: 1px solid #2a2a38; padding: 12px 28px; border-radius: 8px; font-weight: bold; text-decoration: none; }
         .btn-secondary:hover { border-color: #f26322; }
 
-        /* Information / About Section */
         .about-section { max-width: 1100px; margin: 60px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .card { background: #161622; border: 1px solid #222233; border-radius: 12px; padding: 30px; transition: transform 0.2s, border-color 0.2s; }
-        .card:hover { transform: translateY(-5px); border-color: #f26322; }
+        .card { background: #161622; border: 1px solid #222233; border-radius: 12px; padding: 30px; }
         .card h3 { color: #f26322; margin-bottom: 12px; font-size: 20px; }
         .card p { color: #9090a0; font-size: 14px; }
 
-        /* Dashboard Preview Panels */
-        .dashboards-preview { max-width: 1100px; margin: 80px auto; padding: 0 20px; }
-        .section-title { text-align: center; font-size: 32px; margin-bottom: 40px; color: #fff; }
-        .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        @media(max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
-        
-        .panel-card { background: #12121c; border: 2px solid #1f1f33; border-radius: 16px; padding: 35px; position: relative; overflow: hidden; }
-        .panel-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #f26322, #ff3366); }
-        .panel-card h3 { font-size: 24px; margin-bottom: 10px; color: #fff; }
-        .panel-card p { color: #a0a0b0; font-size: 14px; margin-bottom: 20px; }
-        .panel-link { color: #f26322; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
-        .panel-link:hover { text-decoration: underline; }
+        /* Login / Register Modal Overlay */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-card { background: #161622; border: 1px solid #2a2a38; padding: 35px; border-radius: 16px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-card h2 { color: #f26322; margin-bottom: 20px; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 13px; color: #b0b0c0; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 12px; background: #0d0d12; border: 1px solid #2a2a38; border-radius: 8px; color: #fff; font-size: 14px; }
+        .input-group input:focus { border-color: #f26322; outline: none; }
+        .modal-btn { width: 100%; padding: 12px; background: #f26322; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .modal-btn:hover { opacity: 0.9; }
+        .close-modal { position: absolute; top: 15px; right: 20px; color: #a0a0b0; font-size: 20px; cursor: pointer; background: none; border: none; }
+        .close-modal:hover { color: #fff; }
+        .switch-mode { text-align: center; margin-top: 15px; font-size: 13px; color: #a0a0b0; }
+        .switch-mode a { color: #f26322; text-decoration: none; cursor: pointer; font-weight: bold; }
+        .msg { margin-top: 10px; text-align: center; font-size: 13px; }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
 
-        /* Footer */
         footer { text-align: center; padding: 40px; background: #08080c; color: #606070; font-size: 13px; border-top: 1px solid #161622; margin-top: 80px; }
         footer a { color: #f26322; text-decoration: none; }
     </style>
 </head>
 <body>
-
-    <!-- Navigation -->
     <header>
         <a href="/" class="logo">⚡ RecNexus</a>
         <div class="nav-links">
             <a href="#about">About</a>
-            <a href="#dashboards">Dashboards</a>
             <a href="/forgot-password.html">Reset Password</a>
-            <a href="#" class="btn-auth">Login / Register</a>
+            <a href="/dashboard.html">Dashboard</a>
+            <a onclick="openAuthModal('login')" class="btn-auth">Login / Register</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
     <section class="hero">
         <h1>Welcome to <span>RecNexus</span></h1>
-        <p>The premier navy-styled platform built for gamers, teams, and communities to connect, manage control panels, and track live player stats seamlessly.</p>
+        <p>The premier navy-styled platform built for gamers, teams, and communities to connect, track telemetry, and compete seamlessly.</p>
         <div class="hero-btns">
-            <a href="#dashboards" class="btn-primary">Explore Dashboards</a>
+            <a onclick="openAuthModal('login')" class="btn-primary">Get Started</a>
             <a href="#about" class="btn-secondary">Learn More</a>
         </div>
     </section>
 
-    <!-- About / What is RecNexus -->
     <section id="about" class="about-section">
         <div class="card">
             <h3>🎮 What is RecNexus?</h3>
-            <p>RecNexus is an all-in-one community hub and infrastructure platform designed to give players and server administrators total command over their gaming experience.</p>
+            <p>RecNexus is an all-in-one community hub and infrastructure platform designed to give players total command over their gaming stats and profile.</p>
         </div>
         <div class="card">
             <h3>🛡️ Secure & Verified</h3>
-            <p>Featuring robust user registration, 6-digit live email verification via Nodemailer, and dedicated password recovery tools to keep accounts completely locked down.</p>
+            <p>Featuring robust user accounts, 6-digit live email verification, and dedicated password recovery tools to keep your profile secure.</p>
         </div>
         <div class="card">
             <h3>⚡ High-Speed Infrastructure</h3>
-            <p>Powered by a robust Node.js and Express backend, offering real-time synchronization, instant telemetry updates, and seamless server routing.</p>
+            <p>Powered by a robust backend offering real-time synchronization, match telemetry, and seamless community engagement.</p>
         </div>
     </section>
 
-    <!-- Control Panel & Player Dashboard Previews -->
-    <section id="dashboards" class="dashboards-preview">
-        <h2 class="section-title">Command & Control Centers</h2>
-        <div class="panel-grid">
-            
-            <!-- Control Panel Card -->
-            <div class="panel-card">
-                <h3>⚙️ Admin Control Panel</h3>
-                <p>Manage system health, monitor active node connections, handle user accounts, configure environment variables, and review real-time server diagnostics in a deep navy interface.</p>
-                <a href="#" class="panel-link">Launch Control Panel →</a>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-card">
+            <button class="close-modal" onclick="closeAuthModal()">&times;</button>
+            <h2 id="modalTitle">Login to RecNexus</h2>
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="input-group" id="gamertagGroup">
+                    <label>Gamertag or Email</label>
+                    <input type="text" id="userInput" required placeholder="Enter your gamertag">
+                </div>
+                <div class="input-group" id="emailGroup" style="display:none;">
+                    <label>Email Address</label>
+                    <input type="email" id="emailInput" placeholder="your.email@example.com">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="passInput" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="modal-btn" id="modalSubmitBtn">Login</button>
+            </form>
+            <div id="authMsg" class="msg"></div>
+            <div class="switch-mode" id="switchText">
+                Don't have an account? <a onclick="toggleMode()">Register</a>
             </div>
-
-            <!-- Players Dashboard Card -->
-            <div class="panel-card">
-                <h3>🏆 Players Dashboard</h3>
-                <p>View your active gamertag profile, track match statistics, manage verification status, and connect directly with community events and team rosters.</p>
-                <a href="#" class="panel-link">Open Players Dashboard →</a>
+            <div style="text-align: center; margin-top: 10px;">
+                <a href="/forgot-password.html" style="font-size: 12px; color: #a0a0b0; text-decoration: none;">Forgot Password?</a>
             </div>
-
         </div>
-    </section>
+    </div>
 
-    <!-- Footer -->
     <footer>
         <p>&copy; 2026 RecNexus. All rights reserved. | <a href="/forgot-password.html">Account Recovery</a></p>
     </footer>
 
+    <script>
+        let isLoginMode = true;
+
+        function openAuthModal(mode) {
+            document.getElementById('authModal').style.display = 'flex';
+            if(mode === 'register') {
+                setRegisterMode();
+            } else {
+                setLoginMode();
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('authMsg').textContent = '';
+        }
+
+        function setLoginMode() {
+            isLoginMode = true;
+            document.getElementById('modalTitle').textContent = 'Login to RecNexus';
+            document.getElementById('emailGroup').style.display = 'none';
+            document.getElementById('userInput').placeholder = 'Enter your gamertag';
+            document.getElementById('modalSubmitBtn').textContent = 'Login';
+            document.getElementById('switchText').innerHTML = 'Don\'t have an account? <a onclick="toggleMode()">Register</a>';
+        }
+
+        function setRegisterMode() {
+            isLoginMode = false;
+            document.getElementById('modalTitle').textContent = 'Create RecNexus Account';
+            document.getElementById('emailGroup').style.display = 'block';
+            document.getElementById('userInput').placeholder = 'Choose a gamertag';
+            document.getElementById('modalSubmitBtn').textContent = 'Register & Send PIN';
+            document.getElementById('switchText').innerHTML = 'Already have an account? <a onclick="toggleMode()">Login</a>';
+        }
+
+        function toggleMode() {
+            if (isLoginMode) { setRegisterMode(); } else { setLoginMode(); }
+            document.getElementById('authMsg').textContent = '';
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const msgEl = document.getElementById('authMsg');
+            const pass = document.getElementById('passInput').value;
+            const btn = document.getElementById('modalSubmitBtn');
+
+            if (isLoginMode) {
+                const gamertag = document.getElementById('userInput').value.trim();
+                btn.disabled = true; btn.textContent = 'Logging in...';
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ gamertag, password: pass })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        msgEl.textContent = "Success! Redirecting..."; msgEl.className = "msg success";
+                        setTimeout(() => window.location.href = data.redirectUrl, 800);
+                    } else {
+                        msgEl.textContent = data.message; msgEl.className = "msg error";
+                        btn.disabled = false; btn.textContent = 'Login';
+                    }
+                } catch(err) {
+                    msgEl.textContent = "Network error."; msgEl.className = "msg error";
+                    btn.disabled = false; btn.textContent = 'Login';
+                }
+            } else {
+                const gamertag = document.getElementById('userInput').value.trim();
+                const email = document.getElementById('emailInput').value.trim();
+                btn.disabled = true; btn.textContent = 'Registering...';
+                try {
+                    const res = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ gamertag, email, password: pass })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        msgEl.textContent = data.message; msgEl.className = "msg success";
+                        setTimeout(() => {
+                            // Switch to verification mode prompt
+                            alert("Account created! Please check your email for the 6-digit verification PIN, then log in.");
+                            setLoginMode();
+                            btn.disabled = false; btn.textContent = 'Login';
+                        }, 1500);
+                    } else {
+                        msgEl.textContent = data.message; msgEl.className = "msg error";
+                        btn.disabled = false; btn.textContent = 'Register & Send PIN';
+                    }
+                } catch(err) {
+                    msgEl.textContent = "Network error."; msgEl.className = "msg error";
+                    btn.disabled = false; btn.textContent = 'Register & Send PIN';
+                }
+            }
+        }
+    </script>
 </body>
 </html>
