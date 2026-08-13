@@ -30,6 +30,21 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+async function sendEmail(targetEmail, subject, htmlContent) {
+    try {
+        await transporter.sendMail({
+            from: '"RecNexus Support" <recnexussupport@gmail.com>',
+            to: targetEmail,
+            subject: subject,
+            html: htmlContent
+        });
+        return true;
+    } catch (error) {
+        console.error('[EMAIL ERROR]:', error);
+        return false;
+    }
+}
+
 const RESERVED_NAMES = ['recnexusofficial', 'abbieadminofficial', 'admin', 'administrator', 'staff', 'support', 'moderator', 'mod', 'system', 'recnexus', 'owner', 'host'];
 
 const usersDB = [
@@ -48,6 +63,7 @@ const usersDB = [
     }
 ];
 
+// AUTH ENDPOINTS
 app.post('/api/auth/register', async (req, res) => {
     const { gamertag, email, password } = req.body;
     if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: 'All fields are required.' });
@@ -85,6 +101,47 @@ app.post('/api/auth/register', async (req, res) => {
     res.json({ success: true, redirectUrl: '/dashboard.html', message: 'Account created successfully!' });
 });
 
+// PASSWORD RESET ENDPOINTS
+app.post('/api/auth/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email is required.' });
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = usersDB.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (!user) {
+        return res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetToken = resetToken;
+    user.resetExpires = Date.now() + 3600000; // 1 hour
+
+    const resetLink = 'https://recnexus.onrender.com/reset-password.html?token=' + resetToken;
+    const htmlContent = '<h3>Password Reset Request</h3><p>Click the link below to reset your password:</p><a href="' + resetLink + '">' + resetLink + '</a>';
+
+    await sendEmail(user.email, 'RecNexus Password Reset', htmlContent);
+
+    res.json({ success: true, message: 'Password reset link sent to your email.' });
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ success: false, message: 'Token and new password are required.' });
+
+    const user = usersDB.find(u => u.resetToken === token && u.resetExpires > Date.now());
+    if (!user) {
+        return res.status(400).json({ success: false, message: 'Invalid or expired password reset token.' });
+    }
+
+    user.passwordHash = bcrypt.hashSync(newPassword, 10);
+    user.resetToken = null;
+    user.resetExpires = null;
+
+    res.json({ success: true, message: 'Password has been successfully reset.' });
+});
+
+// OWNER MANUAL ACCOUNT CREATION ENDPOINT
 app.post('/api/owner/create-account', (req, res) => {
     const { gamertag, email, password, role } = req.body;
     if (!gamertag || !email || !password) {
