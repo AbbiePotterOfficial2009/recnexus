@@ -30,21 +30,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-async function sendEmail(targetEmail, subject, htmlContent) {
-    try {
-        await transporter.sendMail({
-            from: '"RecNexus Support" <recnexussupport@gmail.com>',
-            to: targetEmail,
-            subject: subject,
-            html: htmlContent
-        });
-        return true;
-    } catch (error) {
-        console.error('[EMAIL ERROR]:', error);
-        return false;
-    }
-}
-
 const RESERVED_NAMES = ['recnexusofficial', 'abbieadminofficial', 'admin', 'administrator', 'staff', 'support', 'moderator', 'mod', 'system', 'recnexus', 'owner', 'host'];
 
 const usersDB = [
@@ -63,7 +48,6 @@ const usersDB = [
     }
 ];
 
-// AUTH ENDPOINTS
 app.post('/api/auth/register', async (req, res) => {
     const { gamertag, email, password } = req.body;
     if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: 'All fields are required.' });
@@ -101,7 +85,6 @@ app.post('/api/auth/register', async (req, res) => {
     res.json({ success: true, redirectUrl: '/dashboard.html', message: 'Account created successfully!' });
 });
 
-// OWNER MANUAL ACCOUNT CREATION ENDPOINT
 app.post('/api/owner/create-account', (req, res) => {
     const { gamertag, email, password, role } = req.body;
     if (!gamertag || !email || !password) {
