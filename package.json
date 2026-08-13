@@ -1,13 +1,15 @@
 ﻿{
   "name": "recnexus",
-  "version": "2.2.0",
-  "description": "RecNexus Master Launcher & Coach Level 99 Moderation Server with Socket.io Realtime Sync",
+  "version": "2.3.0",
+  "description": "RecNexus Master Launcher with Dual Public & Coach Authentication",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
+    "express-session": "^1.18.0",
     "socket.io": "^4.7.5"
   }
 }

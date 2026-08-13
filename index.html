@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecNexus Master Control Dashboard</title>
+    <title>RecNexus Launcher & Master Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -31,6 +31,37 @@
             gap: 22px;
         }
 
+        /* --- AUTH OVERLAY --- */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(30, 15, 10, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 999;
+        }
+
+        .auth-box {
+            background: #ffffff; width: 420px; border-radius: 28px; padding: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 4px solid #ffcaa8;
+            display: flex; flex-direction: column; gap: 20px; text-align: center;
+        }
+
+        .tab-switch { display: flex; background: #f0e6e1; border-radius: 16px; padding: 4px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 12px; font-weight: 800;
+            font-size: 13px; cursor: pointer; background: transparent; color: #7a5e52; transition: all 0.2s;
+        }
+        .tab-btn.active { background: var(--primary-orange); color: white; box-shadow: 0 4px 10px rgba(242, 99, 34, 0.3); }
+
+        .auth-input {
+            width: 100%; padding: 14px 18px; border-radius: 14px; border: 2px solid #ffd0b5;
+            font-size: 14px; font-weight: 700; outline: none; margin-top: 8px;
+        }
+        .auth-btn {
+            background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white;
+            border: none; padding: 14px; border-radius: 16px; font-size: 16px; font-weight: 800;
+            cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 6px 14px rgba(217, 74, 11, 0.3);
+        }
+
+        /* --- DASHBOARD HEADER --- */
         .header { display: flex; justify-content: space-between; align-items: center; }
         .header-left { display: flex; align-items: center; gap: 16px; }
 
@@ -41,21 +72,10 @@
         }
         .brand-logo h1 { color: var(--primary-orange); font-size: 26px; font-weight: 900; text-transform: uppercase; }
 
-        .coach-card {
+        .user-card {
             background: linear-gradient(135deg, #2b1c19 0%, #170d0a 100%);
-            color: white; padding: 8px 18px; border-radius: 20px;
-            display: flex; align-items: center; gap: 12px;
-            border: 3px solid var(--coach-gold); box-shadow: 0 8px 18px rgba(0,0,0,0.3);
-        }
-
-        .coach-avatar {
-            font-size: 26px; background: var(--coach-gold); border-radius: 50%;
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-        }
-
-        .coach-lvl {
-            background: var(--primary-orange); color: white; font-size: 11px;
-            font-weight: 900; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+            color: white; padding: 8px 18px; border-radius: 20px; display: flex;
+            align-items: center; gap: 12px; border: 3px solid var(--coach-gold); box-shadow: 0 8px 18px rgba(0,0,0,0.3);
         }
 
         .server-status-pill {
@@ -64,53 +84,19 @@
             box-shadow: var(--tile-shadow); border: 2px solid #ffcaa5;
         }
 
-        .status-dot {
-            width: 12px; height: 12px; border-radius: 50%;
-            background-color: var(--red-offline); box-shadow: 0 0 10px var(--red-offline);
-            transition: all 0.3s ease;
-        }
-        .status-dot.online { background-color: var(--green-online); box-shadow: 0 0 10px var(--green-online); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background-color: var(--green-online); box-shadow: 0 0 10px var(--green-online); }
 
-        .section-title {
-            color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px;
-            text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.15);
-        }
-
-        .grid-primary { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; }
+        /* --- TILES & CARDS --- */
+        .section-title { color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .grid-primary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
         .tile-button {
             background: var(--tile-bg); border-radius: 20px; padding: 16px 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: var(--tile-shadow); transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 3px solid #ffffff;
+            cursor: pointer; box-shadow: var(--tile-shadow); transition: all 0.18s ease; border: 3px solid #ffffff;
         }
-        .tile-button:hover { transform: translateY(-5px) scale(1.04); border-color: #ffcca8; }
+        .tile-button:hover { transform: translateY(-4px); border-color: #ffcca8; }
         .tile-icon { font-size: 38px; margin-bottom: 6px; }
         .tile-label { font-size: 14px; font-weight: 800; text-align: center; }
-
-        .quick-access-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .quick-pill {
-            background: var(--pill-bg); border-radius: 18px; padding: 14px 20px;
-            display: flex; align-items: center; gap: 14px; cursor: pointer;
-            box-shadow: var(--tile-shadow); transition: all 0.18s ease; border: 2px solid #ffffff;
-        }
-        .quick-pill:hover { transform: translateY(-3px); border-color: var(--primary-orange); }
-        .quick-pill-icon { font-size: 24px; }
-        .quick-pill-text { font-size: 15px; font-weight: 800; color: #4a2818; }
-
-        .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-        .module-card {
-            background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: var(--tile-shadow);
-            display: flex; flex-direction: column; justify-content: space-between; border: 3px solid #ffe3d1;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .card-title { font-size: 17px; font-weight: 800; color: var(--primary-orange); }
-        .card-badge { background: #f0f0f0; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .card-body { font-size: 12px; color: #665248; margin-bottom: 12px; font-weight: 600; word-break: break-all; }
-        .card-btn {
-            background: var(--primary-orange); color: white; border: none; padding: 10px;
-            border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.15s ease;
-        }
-        .card-btn:hover { background: #d94a0b; }
 
         .dashboard-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
         .panel-box {
@@ -122,23 +108,40 @@
         .player-table th { text-align: left; font-size: 12px; color: #886e63; text-transform: uppercase; padding-bottom: 10px; border-bottom: 2px solid #f0e6e1; }
         .player-table td { padding: 12px 0; font-size: 14px; font-weight: 700; border-bottom: 1px solid #f7efeb; }
 
-        .btn-action { border: none; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; margin-right: 4px; }
+        .btn-action { border: none; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; }
         .btn-kick { background: #ffe8cc; color: #d97706; }
         .btn-ban { background: #fee2e2; color: #dc2626; }
         .btn-ipban { background: #450a0a; color: #ffffff; }
 
-        .broadcast-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #ffd0b5; font-size: 14px; font-weight: 600; outline: none; resize: none; }
+        .broadcast-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #ffd0b5; font-size: 14px; font-weight: 600; outline: none; }
         .btn-send-broadcast { background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white; border: none; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
 
-        .console-drawer {
-            background: #1e120c; color: #ff9b6a; padding: 12px 18px; border-radius: 14px;
-            font-family: monospace; font-size: 13px; display: flex; justify-content: space-between;
-        }
+        .console-drawer { background: #1e120c; color: #ff9b6a; padding: 12px 18px; border-radius: 14px; font-family: monospace; font-size: 13px; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <!-- TOP HEADER -->
+    <!-- AUTH MODAL OVERLAY -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-box">
+            <div style="font-size: 36px;">🎮</div>
+            <h2 style="color: var(--primary-orange); font-size: 22px; font-weight: 900;">RecNexus Portal</h2>
+            
+            <div class="tab-switch">
+                <button id="tabPlayer" class="tab-btn active" onclick="switchTab('PLAYER')">🎮 Player Login</button>
+                <button id="tabCoach" class="tab-btn" onclick="switchTab('ADMIN')">🧢 Coach Level 99</button>
+            </div>
+
+            <div id="authForm">
+                <input id="loginGamertag" type="text" class="auth-input" placeholder="RecRoom Gamertag / Username">
+                <input id="loginPassword" type="password" class="auth-input" placeholder="Password">
+                <button class="auth-btn" onclick="performLogin()">Connect to RecNexus</button>
+            </div>
+            <p id="authError" style="color: var(--red-offline); font-size: 12px; font-weight: 800; min-height: 16px;"></p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
     <div class="header">
         <div class="header-left">
             <div class="brand-logo">
@@ -146,110 +149,51 @@
                 <h1>RecNexus</h1>
             </div>
 
-            <div class="coach-card">
-                <div class="coach-avatar">🧢</div>
+            <div class="user-card">
+                <div style="font-size: 22px;">🧢</div>
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 16px; font-weight: 900;">COACH</span>
-                        <span class="coach-lvl">LVL 99 OWNER</span>
+                        <span id="activeGamertag" style="font-size: 16px; font-weight: 900;">Guest</span>
+                        <span id="activeRoleBadge" style="background: var(--primary-orange); color: white; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 8px;">PLAYER</span>
                     </div>
-                    <div style="font-size: 11px; color: #ffca85;">Master Admin Access</div>
+                    <div id="activeUserSub" style="font-size: 11px; color: #ffca85;">Gamertag Connected</div>
                 </div>
             </div>
         </div>
 
-        <div class="server-status-pill">
-            <div id="statusDot" class="status-dot"></div>
-            <span id="statusText">WebSocket: Connecting...</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="server-status-pill">
+                <div class="status-dot"></div>
+                <span id="statusText">Realtime Sync: ONLINE</span>
+            </div>
+            <button onclick="logout()" style="background: #ffffff; border: 2px solid #ffcaa5; padding: 10px 16px; border-radius: 20px; font-weight: 800; cursor: pointer;">Logout</button>
         </div>
     </div>
 
-    <!-- MAIN CONTROLS TILES -->
-    <div class="section-title">Main Controls</div>
+    <!-- MAIN CONTROLS -->
+    <div class="section-title">Launch Controls</div>
     <div class="grid-primary">
         <div class="tile-button" onclick="triggerAction('launch-unity')">
             <div class="tile-icon">🚪</div>
             <div class="tile-label">Play Game</div>
         </div>
-        <div class="tile-button" onclick="location.reload()">
-            <div class="tile-icon">⚡</div>
-            <div class="tile-label">Reload App</div>
+        <div class="tile-button" onclick="triggerAction('open-unity-folder')">
+            <div class="tile-icon">📁</div>
+            <div class="tile-label">Game Directory</div>
         </div>
-        <div class="tile-button" onclick="triggerAction('launch-desktop')">
-            <div class="tile-icon">🖥️</div>
-            <div class="tile-label">Desktop App</div>
-        </div>
-        <div class="tile-button" onclick="triggerAction('launch-all')">
-            <div class="tile-icon">🚀</div>
-            <div class="tile-label">Launch All</div>
-        </div>
-        <div class="tile-button" onclick="triggerAction('stop-all')">
+        <div id="adminStopTile" class="tile-button" style="display: none;" onclick="triggerAction('stop-all')">
             <div class="tile-icon">🛑</div>
-            <div class="tile-label">Stop All</div>
+            <div class="tile-label">Stop All Processes</div>
         </div>
-        <div class="tile-button" onclick="triggerAction('git-sync')">
+        <div id="adminGitTile" class="tile-button" style="display: none;" onclick="triggerAction('git-sync')">
             <div class="tile-icon">🔄</div>
             <div class="tile-label">Git Sync</div>
         </div>
     </div>
 
-    <!-- QUICK ACCESS ROW -->
-    <div class="section-title">Quick Access</div>
-    <div class="quick-access-row">
-        <div class="quick-pill" onclick="window.open('http://localhost:3000', '_blank')">
-            <span class="quick-pill-icon">🌐</span>
-            <span class="quick-pill-text">Open API Web Node</span>
-        </div>
-        <div class="quick-pill" onclick="triggerAction('open-unity-folder')">
-            <span class="quick-pill-icon">📁</span>
-            <span class="quick-pill-text">Open Game Folder</span>
-        </div>
-        <div class="quick-pill" onclick="triggerAction('clean-deps')">
-            <span class="quick-pill-icon">🧹</span>
-            <span class="quick-pill-text">Clean & Reinstall</span>
-        </div>
-    </div>
-
-    <!-- ACTIVE SERVICES ROW -->
-    <div class="section-title">Active Services</div>
-    <div class="cards-row">
-        <div class="module-card">
-            <div>
-                <div class="card-header">
-                    <div class="card-title">RecNexus Backend</div>
-                    <div class="card-badge">PORT 3000</div>
-                </div>
-                <div class="card-body">C:\Users\Abbie.Potter\recnexus</div>
-            </div>
-            <button class="card-btn" onclick="location.reload()">Refresh WebSockets</button>
-        </div>
-
-        <div class="module-card">
-            <div>
-                <div class="card-header">
-                    <div class="card-title">RecRoom Revival</div>
-                    <div class="card-badge">UNITY CLIENT</div>
-                </div>
-                <div class="card-body">C:\Users\Abbie.Potter\recroom-revivall</div>
-            </div>
-            <button class="card-btn" onclick="triggerAction('launch-unity')">Launch Executable</button>
-        </div>
-
-        <div class="module-card">
-            <div>
-                <div class="card-header">
-                    <div class="card-title">Desktop Panel</div>
-                    <div class="card-badge">ELECTRON APP</div>
-                </div>
-                <div class="card-body">C:\Users\Abbie.Potter\recnexus</div>
-            </div>
-            <button class="card-btn" onclick="triggerAction('launch-desktop')">Start App</button>
-        </div>
-    </div>
-
-    <!-- GAME MODERATION & BROADCAST CENTER -->
-    <div class="section-title">Live Moderation & Coach Control (Realtime WebSockets)</div>
-    <div class="dashboard-columns">
+    <!-- MODERATION & BROADCAST (ADMIN ONLY) -->
+    <div id="adminModerationSection" style="display: none;" class="section-title">Coach Level 99 Moderation</div>
+    <div id="adminModerationGrid" style="display: none;" class="dashboard-columns">
         <div class="panel-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="font-size: 18px; color: var(--primary-orange);">👥 Active User Moderation</h2>
@@ -257,58 +201,104 @@
             </div>
             <table class="player-table">
                 <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Room</th>
-                        <th>IP Address</th>
-                        <th>Actions</th>
-                    </tr>
+                    <tr><th>Username</th><th>Room</th><th>IP Address</th><th>Actions</th></tr>
                 </thead>
-                <tbody id="playerTableBody">
-                    <tr><td colspan="4" style="text-align: center; color: #aaa;">Connecting to WebSocket server...</td></tr>
-                </tbody>
+                <tbody id="playerTableBody"></tbody>
             </table>
         </div>
 
         <div class="panel-box">
-            <h2 style="font-size: 18px; color: var(--primary-orange);">📢 Send Coach Notification</h2>
-            <textarea id="broadcastMsg" class="broadcast-input" rows="4" placeholder="Enter in-game message overlay..."></textarea>
+            <h2 style="font-size: 18px; color: var(--primary-orange);">📢 Broadcast Announcement</h2>
+            <textarea id="broadcastMsg" class="broadcast-input" rows="4" placeholder="Enter overlay message..."></textarea>
             <button class="btn-send-broadcast" onclick="sendCoachBroadcast()">🚀 Broadcast Announcement</button>
         </div>
     </div>
 
-    <!-- CONSOLE STATUS DRAWER -->
+    <!-- CONSOLE -->
     <div class="console-drawer">
         <span>STATUS:</span>
-        <span id="consoleText">Socket.io Engine initialized. Listening for server events...</span>
+        <span id="consoleText">Authenticated and connected to RecNexus Master Node.</span>
     </div>
 
     <script>
         const socket = io();
+        let currentAuthType = 'PLAYER';
+        let currentUser = null;
 
-        // Socket Connection Listeners
-        socket.on('connect', () => {
-            document.getElementById("statusDot").classList.add("online");
-            document.getElementById("statusText").innerText = "Realtime Sync: ONLINE";
-            document.getElementById("consoleText").innerText = "[SOCKET connected] Realtime event stream active.";
-        });
+        function switchTab(type) {
+            currentAuthType = type;
+            document.getElementById('tabPlayer').classList.toggle('active', type === 'PLAYER');
+            document.getElementById('tabCoach').classList.toggle('active', type === 'ADMIN');
+            document.getElementById('loginGamertag').placeholder = type === 'PLAYER' ? 'RecRoom Gamertag' : 'Coach Username';
+            document.getElementById('authError').innerText = '';
+        }
 
-        socket.on('disconnect', () => {
-            document.getElementById("statusDot").classList.remove("online");
-            document.getElementById("statusText").innerText = "Realtime Sync: OFFLINE";
-            document.getElementById("consoleText").innerText = "[SOCKET disconnected] Attempting reconnection...";
-        });
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/auth/me');
+                const data = await res.json();
+                if (data.authenticated) {
+                    currentUser = data.user;
+                    document.getElementById('authOverlay').style.display = 'none';
+                    updateUIForUser();
+                } else {
+                    document.getElementById('authOverlay').style.display = 'flex';
+                }
+            } catch (err) {
+                document.getElementById('authOverlay').style.display = 'flex';
+            }
+        }
 
-        // Realtime Player Table Sync
+        async function performLogin() {
+            const gamertag = document.getElementById('loginGamertag').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorElement = document.getElementById('authError');
+
+            if (!gamertag || !password) return errorElement.innerText = 'Enter your credentials.';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loginType: currentAuthType, gamertag, password })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    document.getElementById('authOverlay').style.display = 'none';
+                    updateUIForUser();
+                } else {
+                    errorElement.innerText = data.message;
+                }
+            } catch (err) {
+                errorElement.innerText = 'Server connection failed.';
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            location.reload();
+        }
+
+        function updateUIForUser() {
+            if (!currentUser) return;
+            document.getElementById('activeGamertag').innerText = currentUser.gamertag;
+            document.getElementById('activeRoleBadge').innerText = currentUser.role;
+
+            const isAdmin = currentUser.role === 'ADMIN';
+            document.getElementById('adminStopTile').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('adminGitTile').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('adminModerationSection').style.display = isAdmin ? 'block' : 'none';
+            document.getElementById('adminModerationGrid').style.display = isAdmin ? 'grid' : 'none';
+        }
+
+        // Realtime Socket Sync
         socket.on('players_update', (data) => {
+            if (!currentUser || currentUser.role !== 'ADMIN') return;
             document.getElementById("playerCountBadge").innerText = `${data.players.length} Online`;
             const tableBody = document.getElementById("playerTableBody");
             
-            if (data.players.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No players online.</td></tr>`;
-                return;
-            }
-
             tableBody.innerHTML = data.players.map(p => `
                 <tr>
                     <td><b>${p.username}</b></td>
@@ -317,57 +307,40 @@
                     <td>
                         <button class="btn-action btn-kick" onclick="moderate('kick','${p.id}')">Kick</button>
                         <button class="btn-action btn-ban" onclick="moderate('ban','${p.id}')">Ban</button>
-                        <button class="btn-action btn-ipban" onclick="moderate('ipban','${p.id}')">IP Ban</button>
                     </td>
                 </tr>
             `).join("");
         });
 
-        // Realtime Console Logs
-        socket.on('console_log', (message) => {
-            document.getElementById("consoleText").innerText = message;
-        });
+        socket.on('console_log', (msg) => { document.getElementById("consoleText").innerText = msg; });
+        socket.on('broadcast_received', (n) => { alert(`📢 COACH BROADCAST:\n\n"${n.message}"`); });
 
-        // Realtime Broadcast Alert
-        socket.on('broadcast_received', (notification) => {
-            alert(`📢 LIVE COACH BROADCAST:\n\n"${notification.message}"\n\nSent at: ${notification.timestamp}`);
-        });
-
-        // API Requests Triggering Socket Broadcasts
         async function moderate(action, playerId) {
-            try {
-                await fetch(`/api/moderation/${action}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ playerId })
-                });
-            } catch (err) {
-                document.getElementById("consoleText").innerText = `[ERROR] Action failed.`;
-            }
+            await fetch(`/api/moderation/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playerId })
+            });
         }
 
         async function sendCoachBroadcast() {
             const msg = document.getElementById("broadcastMsg").value.trim();
-            if (!msg) return alert("Enter a message to broadcast!");
-            try {
-                await fetch(`/api/notifications/broadcast`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg })
-                });
-                document.getElementById("broadcastMsg").value = "";
-            } catch (err) {
-                document.getElementById("consoleText").innerText = "[ERROR] Could not send broadcast.";
-            }
+            if (!msg) return;
+            await fetch(`/api/notifications/broadcast`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            document.getElementById("broadcastMsg").value = "";
         }
 
         async function triggerAction(action) {
-            try {
-                await fetch(`/api/launcher/${action}`, { method: 'POST' });
-            } catch (err) {
-                document.getElementById("consoleText").innerText = `[SYSTEM] Triggered action: ${action}`;
-            }
+            const res = await fetch(`/api/launcher/${action}`, { method: 'POST' });
+            const data = await res.json();
+            document.getElementById("consoleText").innerText = `[SYSTEM] ${data.message}`;
         }
+
+        checkSession();
     </script>
 </body>
 </html>
