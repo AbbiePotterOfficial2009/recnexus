@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RecNexus Master Control Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #f78536 0%, #eb4e28 100%);
@@ -30,202 +31,91 @@
             gap: 22px;
         }
 
-        /* --- HEADER SECTION --- */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
 
         .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #ffffff;
-            padding: 10px 22px;
-            border-radius: 20px;
-            box-shadow: var(--tile-shadow);
-            border: 3px solid #ffcca8;
+            display: flex; align-items: center; gap: 12px;
+            background: #ffffff; padding: 10px 22px; border-radius: 20px;
+            box-shadow: var(--tile-shadow); border: 3px solid #ffcca8;
         }
-
         .brand-logo h1 { color: var(--primary-orange); font-size: 26px; font-weight: 900; text-transform: uppercase; }
 
         .coach-card {
             background: linear-gradient(135deg, #2b1c19 0%, #170d0a 100%);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 3px solid var(--coach-gold);
-            box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+            color: white; padding: 8px 18px; border-radius: 20px;
+            display: flex; align-items: center; gap: 12px;
+            border: 3px solid var(--coach-gold); box-shadow: 0 8px 18px rgba(0,0,0,0.3);
         }
 
         .coach-avatar {
-            font-size: 26px;
-            background: var(--coach-gold);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 26px; background: var(--coach-gold); border-radius: 50%;
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
         }
 
         .coach-lvl {
-            background: var(--primary-orange);
-            color: white;
-            font-size: 11px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
+            background: var(--primary-orange); color: white; font-size: 11px;
+            font-weight: 900; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
         }
 
         .server-status-pill {
-            background: var(--pill-bg);
-            padding: 10px 20px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 800;
-            font-size: 14px;
-            box-shadow: var(--tile-shadow);
-            border: 2px solid #ffcaa5;
+            background: var(--pill-bg); padding: 10px 20px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14px;
+            box-shadow: var(--tile-shadow); border: 2px solid #ffcaa5;
         }
 
         .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--red-offline);
-            box-shadow: 0 0 10px var(--red-offline);
+            width: 12px; height: 12px; border-radius: 50%;
+            background-color: var(--red-offline); box-shadow: 0 0 10px var(--red-offline);
             transition: all 0.3s ease;
         }
-
         .status-dot.online { background-color: var(--green-online); box-shadow: 0 0 10px var(--green-online); }
 
-        /* --- SECTION TITLES --- */
         .section-title {
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
-        /* --- MAIN CONTROLS GRID --- */
-        .grid-primary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 14px;
-        }
-
+        .grid-primary { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; }
         .tile-button {
-            background: var(--tile-bg);
-            border-radius: 20px;
-            padding: 16px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--tile-shadow);
-            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: var(--tile-bg); border-radius: 20px; padding: 16px 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: var(--tile-shadow); transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
             border: 3px solid #ffffff;
         }
-
         .tile-button:hover { transform: translateY(-5px) scale(1.04); border-color: #ffcca8; }
         .tile-icon { font-size: 38px; margin-bottom: 6px; }
         .tile-label { font-size: 14px; font-weight: 800; text-align: center; }
 
-        /* --- QUICK ACCESS ROW --- */
-        .quick-access-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
+        .quick-access-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .quick-pill {
-            background: var(--pill-bg);
-            border-radius: 18px;
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: pointer;
-            box-shadow: var(--tile-shadow);
-            transition: all 0.18s ease;
-            border: 2px solid #ffffff;
+            background: var(--pill-bg); border-radius: 18px; padding: 14px 20px;
+            display: flex; align-items: center; gap: 14px; cursor: pointer;
+            box-shadow: var(--tile-shadow); transition: all 0.18s ease; border: 2px solid #ffffff;
         }
-
         .quick-pill:hover { transform: translateY(-3px); border-color: var(--primary-orange); }
         .quick-pill-icon { font-size: 24px; }
         .quick-pill-text { font-size: 15px; font-weight: 800; color: #4a2818; }
 
-        /* --- ACTIVE SERVICES ROW --- */
-        .cards-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-        }
-
+        .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .module-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 18px;
-            box-shadow: var(--tile-shadow);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 3px solid #ffe3d1;
+            background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: var(--tile-shadow);
+            display: flex; flex-direction: column; justify-content: space-between; border: 3px solid #ffe3d1;
         }
-
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .card-title { font-size: 17px; font-weight: 800; color: var(--primary-orange); }
         .card-badge { background: #f0f0f0; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
         .card-body { font-size: 12px; color: #665248; margin-bottom: 12px; font-weight: 600; word-break: break-all; }
-
         .card-btn {
-            background: var(--primary-orange);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.15s ease;
+            background: var(--primary-orange); color: white; border: none; padding: 10px;
+            border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.15s ease;
         }
-
         .card-btn:hover { background: #d94a0b; }
 
-        /* --- MODERATION & BROADCAST CENTER --- */
-        .dashboard-columns {
-            display: grid;
-            grid-template-columns: 1.6fr 1fr;
-            gap: 20px;
-        }
-
+        .dashboard-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
         .panel-box {
-            background: #ffffff;
-            border-radius: 22px;
-            padding: 20px;
-            box-shadow: var(--tile-shadow);
-            border: 3px solid #ffe3d1;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+            background: #ffffff; border-radius: 22px; padding: 20px; box-shadow: var(--tile-shadow);
+            border: 3px solid #ffe3d1; display: flex; flex-direction: column; gap: 14px;
         }
 
         .player-table { width: 100%; border-collapse: collapse; }
@@ -240,16 +130,9 @@
         .broadcast-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #ffd0b5; font-size: 14px; font-weight: 600; outline: none; resize: none; }
         .btn-send-broadcast { background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white; border: none; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
 
-        /* --- CONSOLE DRAWER --- */
         .console-drawer {
-            background: #1e120c;
-            color: #ff9b6a;
-            padding: 12px 18px;
-            border-radius: 14px;
-            font-family: monospace;
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
+            background: #1e120c; color: #ff9b6a; padding: 12px 18px; border-radius: 14px;
+            font-family: monospace; font-size: 13px; display: flex; justify-content: space-between;
         }
     </style>
 </head>
@@ -277,7 +160,7 @@
 
         <div class="server-status-pill">
             <div id="statusDot" class="status-dot"></div>
-            <span id="statusText">Game API Server: Offline</span>
+            <span id="statusText">WebSocket: Connecting...</span>
         </div>
     </div>
 
@@ -288,9 +171,9 @@
             <div class="tile-icon">🚪</div>
             <div class="tile-label">Play Game</div>
         </div>
-        <div class="tile-button" onclick="checkApiStatus()">
+        <div class="tile-button" onclick="location.reload()">
             <div class="tile-icon">⚡</div>
-            <div class="tile-label">Start API</div>
+            <div class="tile-label">Reload App</div>
         </div>
         <div class="tile-button" onclick="triggerAction('launch-desktop')">
             <div class="tile-icon">🖥️</div>
@@ -307,10 +190,6 @@
         <div class="tile-button" onclick="triggerAction('git-sync')">
             <div class="tile-icon">🔄</div>
             <div class="tile-label">Git Sync</div>
-        </div>
-        <div class="tile-button" onclick="triggerAction('ai-studio')">
-            <div class="tile-icon">🤖</div>
-            <div class="tile-label">AI Studio</div>
         </div>
     </div>
 
@@ -342,7 +221,7 @@
                 </div>
                 <div class="card-body">C:\Users\Abbie.Potter\recnexus</div>
             </div>
-            <button class="card-btn" onclick="checkApiStatus()">Restart Backend</button>
+            <button class="card-btn" onclick="location.reload()">Refresh WebSockets</button>
         </div>
 
         <div class="module-card">
@@ -369,7 +248,7 @@
     </div>
 
     <!-- GAME MODERATION & BROADCAST CENTER -->
-    <div class="section-title">Live Moderation & Coach Control</div>
+    <div class="section-title">Live Moderation & Coach Control (Realtime WebSockets)</div>
     <div class="dashboard-columns">
         <div class="panel-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -386,7 +265,7 @@
                     </tr>
                 </thead>
                 <tbody id="playerTableBody">
-                    <tr><td colspan="4" style="text-align: center; color: #aaa;">Loading active players...</td></tr>
+                    <tr><td colspan="4" style="text-align: center; color: #aaa;">Connecting to WebSocket server...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -401,65 +280,67 @@
     <!-- CONSOLE STATUS DRAWER -->
     <div class="console-drawer">
         <span>STATUS:</span>
-        <span id="consoleText">Dashboard ready. Waiting for user interaction...</span>
+        <span id="consoleText">Socket.io Engine initialized. Listening for server events...</span>
     </div>
 
     <script>
-        const API_URL = "http://localhost:3000";
+        const socket = io();
 
-        async function checkApiStatus() {
-            const statusDot = document.getElementById("statusDot");
-            const statusText = document.getElementById("statusText");
+        // Socket Connection Listeners
+        socket.on('connect', () => {
+            document.getElementById("statusDot").classList.add("online");
+            document.getElementById("statusText").innerText = "Realtime Sync: ONLINE";
+            document.getElementById("consoleText").innerText = "[SOCKET connected] Realtime event stream active.";
+        });
 
-            try {
-                const res = await fetch(`${API_URL}/api/status`);
-                if (res.ok) {
-                    statusDot.classList.add("online");
-                    statusText.innerText = "Game API Server: ONLINE";
-                } else { throw new Error(); }
-            } catch (err) {
-                statusDot.classList.remove("online");
-                statusText.innerText = "Game API Server: Offline";
+        socket.on('disconnect', () => {
+            document.getElementById("statusDot").classList.remove("online");
+            document.getElementById("statusText").innerText = "Realtime Sync: OFFLINE";
+            document.getElementById("consoleText").innerText = "[SOCKET disconnected] Attempting reconnection...";
+        });
+
+        // Realtime Player Table Sync
+        socket.on('players_update', (data) => {
+            document.getElementById("playerCountBadge").innerText = `${data.players.length} Online`;
+            const tableBody = document.getElementById("playerTableBody");
+            
+            if (data.players.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No players online.</td></tr>`;
+                return;
             }
-        }
 
-        async function fetchPlayers() {
-            try {
-                const res = await fetch(`${API_URL}/api/players`);
-                const data = await res.json();
-                document.getElementById("playerCountBadge").innerText = `${data.players.length} Online`;
-                const tableBody = document.getElementById("playerTableBody");
-                if (data.players.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No players online.</td></tr>`;
-                    return;
-                }
-                tableBody.innerHTML = data.players.map(p => `
-                    <tr>
-                        <td><b>${p.username}</b></td>
-                        <td>${p.room}</td>
-                        <td style="font-family: monospace;">${p.ip}</td>
-                        <td>
-                            <button class="btn-action btn-kick" onclick="moderate('kick','${p.id}')">Kick</button>
-                            <button class="btn-action btn-ban" onclick="moderate('ban','${p.id}')">Ban</button>
-                            <button class="btn-action btn-ipban" onclick="moderate('ipban','${p.id}')">IP Ban</button>
-                        </td>
-                    </tr>
-                `).join("");
-            } catch (err) {
-                document.getElementById("consoleText").innerText = "[API ERROR] Game server is offline.";
-            }
-        }
+            tableBody.innerHTML = data.players.map(p => `
+                <tr>
+                    <td><b>${p.username}</b></td>
+                    <td>${p.room}</td>
+                    <td style="font-family: monospace;">${p.ip}</td>
+                    <td>
+                        <button class="btn-action btn-kick" onclick="moderate('kick','${p.id}')">Kick</button>
+                        <button class="btn-action btn-ban" onclick="moderate('ban','${p.id}')">Ban</button>
+                        <button class="btn-action btn-ipban" onclick="moderate('ipban','${p.id}')">IP Ban</button>
+                    </td>
+                </tr>
+            `).join("");
+        });
 
+        // Realtime Console Logs
+        socket.on('console_log', (message) => {
+            document.getElementById("consoleText").innerText = message;
+        });
+
+        // Realtime Broadcast Alert
+        socket.on('broadcast_received', (notification) => {
+            alert(`📢 LIVE COACH BROADCAST:\n\n"${notification.message}"\n\nSent at: ${notification.timestamp}`);
+        });
+
+        // API Requests Triggering Socket Broadcasts
         async function moderate(action, playerId) {
             try {
-                const res = await fetch(`${API_URL}/api/moderation/${action}`, {
+                await fetch(`/api/moderation/${action}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ playerId })
                 });
-                const data = await res.json();
-                document.getElementById("consoleText").innerText = `[MODERATION] ${data.message}`;
-                fetchPlayers();
             } catch (err) {
                 document.getElementById("consoleText").innerText = `[ERROR] Action failed.`;
             }
@@ -469,13 +350,11 @@
             const msg = document.getElementById("broadcastMsg").value.trim();
             if (!msg) return alert("Enter a message to broadcast!");
             try {
-                const res = await fetch(`${API_URL}/api/notifications/broadcast`, {
+                await fetch(`/api/notifications/broadcast`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: msg })
                 });
-                const data = await res.json();
-                document.getElementById("consoleText").innerText = `[BROADCAST SENT] "${msg}"`;
                 document.getElementById("broadcastMsg").value = "";
             } catch (err) {
                 document.getElementById("consoleText").innerText = "[ERROR] Could not send broadcast.";
@@ -484,18 +363,11 @@
 
         async function triggerAction(action) {
             try {
-                const res = await fetch(`${API_URL}/api/launcher/${action}`, { method: 'POST' });
-                const data = await res.json();
-                document.getElementById("consoleText").innerText = `[SUCCESS] ${data.message}`;
+                await fetch(`/api/launcher/${action}`, { method: 'POST' });
             } catch (err) {
-                document.getElementById("consoleText").innerText = `[SYSTEM] Triggered: ${action}`;
+                document.getElementById("consoleText").innerText = `[SYSTEM] Triggered action: ${action}`;
             }
         }
-
-        setInterval(checkApiStatus, 3000);
-        setInterval(fetchPlayers, 5000);
-        checkApiStatus();
-        fetchPlayers();
     </script>
 </body>
 </html>

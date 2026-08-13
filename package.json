@@ -1,12 +1,13 @@
 ﻿{
   "name": "recnexus",
-  "version": "2.1.0",
-  "description": "RecNexus Master Launcher & Coach Level 99 Moderation Server",
+  "version": "2.2.0",
+  "description": "RecNexus Master Launcher & Coach Level 99 Moderation Server with Socket.io Realtime Sync",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
   }
 }
