@@ -45,7 +45,7 @@ async function sendEmail(targetEmail, subject, htmlContent) {
     }
 }
 
-const RESERVED_NAMES = ['coach', 'admin', 'administrator', 'staff', 'support', 'moderator', 'mod', 'system', 'recnexus', 'official', 'owner', 'host', 'help'];
+const RESERVED_NAMES = ['recnexusofficial', 'abbieadminofficial', 'admin', 'administrator', 'staff', 'support', 'moderator', 'mod', 'system', 'recnexus', 'owner', 'host'];
 
 const usersDB = [
     {
@@ -70,40 +70,40 @@ app.post('/api/auth/register', async (req, res) => {
 
     const cleanGamertag = gamertag.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const lowerGamertag = cleanGamertag.toLowerCase();
 
-    if (RESERVED_NAMES.some(r => cleanGamertag.toLowerCase().includes(r))) {
-        return res.status(400).json({ success: false, message: "This username contains reserved terms." });
+    // Allow exemption for AbbiePotterOfficial specifically, but block other restricted system combinations
+    if (lowerGamertag !== 'abbiepotterofficial' && RESERVED_NAMES.some(r => lowerGamertag.includes(r))) {
+        return res.status(400).json({ success: false, message: "This username contains reserved system terms." });
     }
 
     if (usersDB.some(u => u.email.toLowerCase() === cleanEmail)) {
         return res.status(400).json({ success: false, message: "Email already exists." });
     }
 
+    // Check if gamertag is already taken by someone else
+    if (usersDB.some(u => u.gamertag.toLowerCase() === lowerGamertag)) {
+        return res.status(400).json({ success: false, message: "Gamertag is already taken." });
+    }
+
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Auto-grant ADMIN role if registering as AbbiePotterOfficial
+    const userRole = (lowerGamertag === 'abbiepotterofficial') ? 'ADMIN' : 'PLAYER';
+
     usersDB.push({
         id: `usr_${Date.now()}`,
         username: cleanGamertag,
         gamertag: cleanGamertag,
         email: cleanEmail,
         passwordHash: bcrypt.hashSync(password, 10),
-        role: "PLAYER",
-        isVerified: false,
-        verificationCode,
+        role: userRole,
+        isVerified: true, // Auto-verify owner exemption if desired, or require PIN
+        verificationCode: null,
         createdAt: new Date().toISOString()
     });
 
-    await sendEmail(cleanEmail, '🎮 RecNexus Verification PIN', `<h2>Your PIN: <b>${verificationCode}</b></h2>`);
-    res.json({ success: true, requiresVerification: true, email: cleanEmail, message: "Verification PIN sent to email." });
-});
-
-app.post('/api/auth/verify', (req, res) => {
-    const { email, code } = req.body;
-    const user = usersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!user || user.verificationCode !== code.trim()) return res.status(400).json({ success: false, message: "Invalid PIN." });
-
-    user.isVerified = true;
-    user.verificationCode = null;
-    res.json({ success: true, message: "Verified successfully!" });
+    res.json({ success: true, redirectUrl: '/dashboard.html', message: "Account created successfully!" });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -114,27 +114,8 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ success: false, message: "Invalid login credentials." });
     }
 
-    if (!user.isVerified && user.role === 'PLAYER') {
-        return res.status(403).json({ success: false, needsVerification: true, email: user.email, message: "Account not verified." });
-    }
-
     req.session.user = { id: user.id, username: user.username, gamertag: user.gamertag, email: user.email, role: user.role };
     res.json({ success: true, redirectUrl: '/dashboard.html', user: req.session.user });
-});
-
-app.post('/api/auth/forgot-password', async (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: "Email is required." });
-
-    const user = usersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (user) {
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        user.resetToken = resetToken;
-        user.resetExpires = Date.now() + 3600000;
-        const resetLink = `http://localhost:${PORT}/reset-password.html?token=${resetToken}`;
-        await sendEmail(user.email, '🔐 RecNexus Password Reset Request', `<p>Click here to reset your password: <a href="${resetLink}">Reset Password</a></p>`);
-    }
-    res.json({ success: true, message: "If an account with that email exists, a reset link has been sent." });
 });
 
 app.get('/api/auth/session', (req, res) => {
@@ -151,5 +132,5 @@ app.post('/api/auth/logout', (req, res) => {
 app.use(express.static(__dirname));
 
 server.listen(PORT, () => {
-    console.log(`RecNexus Master Server running on port ${PORT}`);
+    console.log(`RecNexus Server running on port ${PORT}`);
 });
