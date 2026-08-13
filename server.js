@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,22 +22,17 @@ app.use(session({
     cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'recnexussupport@gmail.com',
-        pass: 'ohbdranasgyqwicr'
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY || 're_Ryz7NLK7_4iYxjLXNEhJW4LNrRPvcJEiB');
 
 async function sendEmail(targetEmail, subject, htmlContent) {
     try {
-        await transporter.sendMail({
-            from: '"RecNexus Support" <recnexussupport@gmail.com>',
-            to: targetEmail,
+        const data = await resend.emails.send({
+            from: 'RecNexus Support <onboarding@resend.dev>',
+            to: [targetEmail],
             subject: subject,
             html: htmlContent
         });
+        console.log('[EMAIL SENT]:', data);
         return true;
     } catch (error) {
         console.error('[EMAIL ERROR]:', error);
