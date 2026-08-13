@@ -3,320 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecNexus Network Portal & Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-    <script src="/socket.io/socket.io.js"></script>
+    <title>RecNexus - Play, Connect, & Compete</title>
     <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #f78536 0%, #eb4e28 100%);
-            --tile-bg: #fffbf7;
-            --tile-shadow: 0 10px 20px rgba(160, 40, 10, 0.22);
-            --primary-orange: #f26322;
-            --text-dark: #3a2218;
-            --pill-bg: #ffffff;
-            --green-online: #22c55e;
-            --red-offline: #ef4444;
-            --coach-gold: #ffb703;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0d12; color: #ffffff; line-height: 1.6; }
+        
+        /* Navigation Bar */
+        header { background: #12121c; border-bottom: 1px solid #1f1f2e; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: bold; color: #f26322; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { color: #b0b0c0; text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s; }
+        .nav-links a:hover { color: #f26322; }
+        .btn-auth { background: linear-gradient(135deg, #f26322, #ff3366); color: white; padding: 8px 18px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 14px; }
+        .btn-auth:hover { opacity: 0.9; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Fredoka', 'Nunito', sans-serif; }
+        /* Hero Section */
+        .hero { padding: 80px 20px; text-align: center; background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d12 70%); }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; color: #ffffff; letter-spacing: -1px; }
+        .hero h1 span { color: #f26322; }
+        .hero p { font-size: 18px; color: #a0a0b0; max-width: 650px; margin: 0 auto 30px auto; }
+        .hero-btns { display: flex; justify-content: center; gap: 15px; }
+        .btn-primary { background: #f26322; color: white; padding: 12px 28px; border-radius: 8px; font-weight: bold; text-decoration: none; }
+        .btn-secondary { background: #1a1a24; color: #fff; border: 1px solid #2a2a38; padding: 12px 28px; border-radius: 8px; font-weight: bold; text-decoration: none; }
+        .btn-secondary:hover { border-color: #f26322; }
 
-        body {
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            color: var(--text-dark);
-            padding: 24px 36px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        /* Information / About Section */
+        .about-section { max-width: 1100px; margin: 60px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card { background: #161622; border: 1px solid #222233; border-radius: 12px; padding: 30px; transition: transform 0.2s, border-color 0.2s; }
+        .card:hover { transform: translateY(-5px); border-color: #f26322; }
+        .card h3 { color: #f26322; margin-bottom: 12px; font-size: 20px; }
+        .card p { color: #9090a0; font-size: 14px; }
 
-        /* --- AUTH OVERLAY --- */
-        .auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(30, 15, 10, 0.88); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center; z-index: 999;
-        }
+        /* Dashboard Preview Panels */
+        .dashboards-preview { max-width: 1100px; margin: 80px auto; padding: 0 20px; }
+        .section-title { text-align: center; font-size: 32px; margin-bottom: 40px; color: #fff; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media(max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
+        
+        .panel-card { background: #12121c; border: 2px solid #1f1f33; border-radius: 16px; padding: 35px; position: relative; overflow: hidden; }
+        .panel-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #f26322, #ff3366); }
+        .panel-card h3 { font-size: 24px; margin-bottom: 10px; color: #fff; }
+        .panel-card p { color: #a0a0b0; font-size: 14px; margin-bottom: 20px; }
+        .panel-link { color: #f26322; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        .panel-link:hover { text-decoration: underline; }
 
-        .auth-box {
-            background: #ffffff; width: 440px; border-radius: 28px; padding: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 4px solid #ffcaa8;
-            display: flex; flex-direction: column; gap: 16px; text-align: center;
-        }
-
-        .tab-switch { display: flex; background: #f0e6e1; border-radius: 16px; padding: 4px; gap: 4px; }
-        .tab-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 12px; font-weight: 800;
-            font-size: 12px; cursor: pointer; background: transparent; color: #7a5e52; transition: all 0.2s;
-        }
-        .tab-btn.active { background: var(--primary-orange); color: white; box-shadow: 0 4px 10px rgba(242, 99, 34, 0.3); }
-
-        .auth-input { width: 100%; padding: 12px 16px; border-radius: 14px; border: 2px solid #ffd0b5; font-size: 14px; font-weight: 700; outline: none; }
-        .auth-btn { background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white; border: none; padding: 14px; border-radius: 16px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; }
-
-        /* --- NAVIGATION --- */
-        .navbar { display: flex; justify-content: space-between; align-items: center; }
-        .nav-tabs { display: flex; gap: 10px; background: rgba(255, 255, 255, 0.2); padding: 6px; border-radius: 20px; }
-        .nav-link { background: transparent; border: none; color: white; padding: 10px 18px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; }
-        .nav-link.active { background: #ffffff; color: var(--primary-orange); box-shadow: var(--tile-shadow); }
-
-        /* --- DASHBOARD TILES & PANELS --- */
-        .panel { background: #ffffff; border-radius: 24px; padding: 24px; box-shadow: var(--tile-shadow); border: 3px solid #ffe3d1; display: flex; flex-direction: column; gap: 16px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-        /* AI CHATBOT UI */
-        .chat-box { background: #fdf8f5; border: 2px solid #ffe3d1; border-radius: 18px; padding: 16px; height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { padding: 10px 14px; border-radius: 14px; max-width: 80%; font-size: 13px; font-weight: 700; }
-        .chat-bot { background: #ffe3d1; color: #4a2818; align-self: flex-start; }
-        .chat-user { background: var(--primary-orange); color: white; align-self: flex-end; }
-
-        /* TICKET TABLE */
-        .ticket-table { width: 100%; border-collapse: collapse; }
-        .ticket-table th { text-align: left; padding: 10px; font-size: 12px; color: #886e63; border-bottom: 2px solid #f0e6e1; }
-        .ticket-table td { padding: 12px 10px; font-size: 13px; font-weight: 700; border-bottom: 1px solid #f7efeb; }
-
-        .badge-open { background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 8px; font-size: 11px; }
-        .badge-resolved { background: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 8px; font-size: 11px; }
+        /* Footer */
+        footer { text-align: center; padding: 40px; background: #08080c; color: #606070; font-size: 13px; border-top: 1px solid #161622; margin-top: 80px; }
+        footer a { color: #f26322; text-decoration: none; }
     </style>
 </head>
 <body>
 
-    <!-- AUTH MODAL OVERLAY -->
-    <div id="authOverlay" class="auth-overlay">
-        <div class="auth-box">
-            <div style="font-size: 36px;">🎮</div>
-            <h2 style="color: var(--primary-orange); font-size: 22px; font-weight: 900;">RecNexus Network</h2>
+    <!-- Navigation -->
+    <header>
+        <a href="/" class="logo">⚡ RecNexus</a>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#dashboards">Dashboards</a>
+            <a href="/forgot-password.html">Reset Password</a>
+            <a href="#" class="btn-auth">Login / Register</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Welcome to <span>RecNexus</span></h1>
+        <p>The premier navy-styled platform built for gamers, teams, and communities to connect, manage control panels, and track live player stats seamlessly.</p>
+        <div class="hero-btns">
+            <a href="#dashboards" class="btn-primary">Explore Dashboards</a>
+            <a href="#about" class="btn-secondary">Learn More</a>
+        </div>
+    </section>
+
+    <!-- About / What is RecNexus -->
+    <section id="about" class="about-section">
+        <div class="card">
+            <h3>🎮 What is RecNexus?</h3>
+            <p>RecNexus is an all-in-one community hub and infrastructure platform designed to give players and server administrators total command over their gaming experience.</p>
+        </div>
+        <div class="card">
+            <h3>🛡️ Secure & Verified</h3>
+            <p>Featuring robust user registration, 6-digit live email verification via Nodemailer, and dedicated password recovery tools to keep accounts completely locked down.</p>
+        </div>
+        <div class="card">
+            <h3>⚡ High-Speed Infrastructure</h3>
+            <p>Powered by a robust Node.js and Express backend, offering real-time synchronization, instant telemetry updates, and seamless server routing.</p>
+        </div>
+    </section>
+
+    <!-- Control Panel & Player Dashboard Previews -->
+    <section id="dashboards" class="dashboards-preview">
+        <h2 class="section-title">Command & Control Centers</h2>
+        <div class="panel-grid">
             
-            <div class="tab-switch">
-                <button id="tabLogin" class="tab-btn active" onclick="switchAuthMode('LOGIN')">Player Login</button>
-                <button id="tabRegister" class="tab-btn" onclick="switchAuthMode('REGISTER')">Create Lifetime Account</button>
-                <button id="tabStaff" class="tab-btn" onclick="switchAuthMode('STAFF')">Staff Portal</button>
+            <!-- Control Panel Card -->
+            <div class="panel-card">
+                <h3>⚙️ Admin Control Panel</h3>
+                <p>Manage system health, monitor active node connections, handle user accounts, configure environment variables, and review real-time server diagnostics in a deep navy interface.</p>
+                <a href="#" class="panel-link">Launch Control Panel →</a>
             </div>
 
-            <!-- LOGIN / REGISTER FORMS -->
-            <div id="authForm" style="display: flex; flex-direction: column; gap: 10px;">
-                <input id="inputGamertag" type="text" class="auth-input" placeholder="Gamertag or Email">
-                <input id="inputEmail" type="email" class="auth-input" placeholder="Email Address" style="display: none;">
-                <input id="inputPassword" type="password" class="auth-input" placeholder="Password">
-                <button class="auth-btn" onclick="submitAuth()">Enter RecNexus</button>
+            <!-- Players Dashboard Card -->
+            <div class="panel-card">
+                <h3>🏆 Players Dashboard</h3>
+                <p>View your active gamertag profile, track match statistics, manage verification status, and connect directly with community events and team rosters.</p>
+                <a href="#" class="panel-link">Open Players Dashboard →</a>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800;">
-                <span onclick="toggleForgotPassword()" style="color: var(--primary-orange); cursor: pointer;">Forgot Password?</span>
-            </div>
-
-            <p id="authError" style="color: var(--red-offline); font-size: 12px; font-weight: 800; min-height: 16px;"></p>
         </div>
-    </div>
+    </section>
 
-    <!-- NAVBAR HEADER -->
-    <div class="navbar">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="background: white; padding: 8px 18px; border-radius: 18px; font-weight: 900; color: var(--primary-orange); font-size: 20px;">🎮 RecNexus</div>
-            <div class="nav-tabs">
-                <button class="nav-link active" onclick="showView('viewLauncher')">Home & Launcher</button>
-                <button class="nav-link" onclick="showView('viewSupport')">Help & AI Support</button>
-                <button id="navStaffDesk" class="nav-link" style="display: none;" onclick="showView('viewStaffDesk')">Support Staff Desk</button>
-            </div>
-        </div>
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 RecNexus. All rights reserved. | <a href="/forgot-password.html">Account Recovery</a></p>
+    </footer>
 
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span id="userBadge" style="background: white; padding: 8px 16px; border-radius: 16px; font-weight: 800; font-size: 13px;">Guest</span>
-            <button onclick="logout()" style="background: #ffffff; border: none; padding: 8px 14px; border-radius: 14px; font-weight: 800; cursor: pointer;">Logout</button>
-        </div>
-    </div>
-
-    <!-- VIEW 1: HOME & GAME LAUNCHER -->
-    <div id="viewLauncher" class="panel">
-        <h2 style="color: var(--primary-orange);">🚀 RecRoom Revival Connected Launcher</h2>
-        <p style="font-size: 14px; font-weight: 700;">Welcome to your RecNexus lifetime portal. Launch your connected game session below.</p>
-        <button onclick="triggerAction('launch-unity')" style="background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white; border: none; padding: 16px; border-radius: 18px; font-size: 18px; font-weight: 900; cursor: pointer; width: 240px;">🎮 Play Game</button>
-    </div>
-
-    <!-- VIEW 2: AI HELP & SUPPORT CENTER -->
-    <div id="viewSupport" class="grid-2" style="display: none;">
-        <!-- AI FAQ Chatbot -->
-        <div class="panel">
-            <h3 style="color: var(--primary-orange);">🤖 RecNexus AI Support Assistant</h3>
-            <div id="chatBox" class="chat-box">
-                <div class="chat-msg chat-bot">Hello! I'm the RecNexus AI Bot. Ask me anything about connecting, resets, or server rules!</div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-                <input id="chatInput" type="text" class="auth-input" placeholder="Type your question..." onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()" style="background: var(--primary-orange); color: white; border: none; padding: 0 18px; border-radius: 14px; font-weight: 800; cursor: pointer;">Ask</button>
-            </div>
-        </div>
-
-        <!-- Submit Support Ticket -->
-        <div class="panel">
-            <h3 style="color: var(--primary-orange);">🎫 Submit Support Ticket</h3>
-            <select id="ticketCategory" class="auth-input">
-                <option>General Support</option>
-                <option>Account Recovery</option>
-                <option>Bug Report / Glitch</option>
-            </select>
-            <input id="ticketSubject" type="text" class="auth-input" placeholder="Subject">
-            <textarea id="ticketDesc" class="auth-input" rows="4" placeholder="Describe your issue in detail..."></textarea>
-            <button onclick="submitSupportTicket()" class="auth-btn">Submit Ticket to Staff</button>
-        </div>
-    </div>
-
-    <!-- VIEW 3: SUPPORT STAFF DESK (STAFF / ADMIN ONLY) -->
-    <div id="viewStaffDesk" class="panel" style="display: none;">
-        <h2 style="color: var(--primary-orange);">🛡️ Support Staff Operations Center</h2>
-        <table class="ticket-table">
-            <thead>
-                <tr><th>Ticket ID</th><th>Gamertag</th><th>Category</th><th>Subject</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="staffTicketBody">
-                <tr><td colspan="6" style="text-align: center;">Loading tickets...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-        const socket = io();
-        let authMode = 'LOGIN';
-        let currentUser = null;
-
-        function switchAuthMode(mode) {
-            authMode = mode;
-            document.getElementById('tabLogin').classList.toggle('active', mode === 'LOGIN');
-            document.getElementById('tabRegister').classList.toggle('active', mode === 'REGISTER');
-            document.getElementById('tabStaff').classList.toggle('active', mode === 'STAFF');
-            
-            document.getElementById('inputEmail').style.display = mode === 'REGISTER' ? 'block' : 'none';
-            document.getElementById('inputGamertag').placeholder = mode === 'STAFF' ? 'Staff Username' : 'Gamertag';
-        }
-
-        async function submitAuth() {
-            const gamertag = document.getElementById('inputGamertag').value.trim();
-            const email = document.getElementById('inputEmail').value.trim();
-            const password = document.getElementById('inputPassword').value.trim();
-
-            const endpoint = authMode === 'REGISTER' ? '/api/auth/register' : '/api/auth/login';
-            const payload = authMode === 'REGISTER' ? { gamertag, email, password } : { loginType: authMode, gamertag, password };
-
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                currentUser = data.user;
-                document.getElementById('authOverlay').style.display = 'none';
-                initUserUI();
-            } else {
-                document.getElementById('authError').innerText = data.message;
-            }
-        }
-
-        async function toggleForgotPassword() {
-            const email = prompt("Enter your account email address for a reset token link:");
-            if (!email) return;
-
-            const res = await fetch('/api/auth/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-
-            const data = await res.json();
-            alert(`${data.message}\n\nGenerated Token Link:\n${data.resetUrl || "Check server console."}`);
-        }
-
-        function initUserUI() {
-            if (!currentUser) return;
-            document.getElementById('userBadge').innerText = `${currentUser.gamertag} (${currentUser.role})`;
-            if (currentUser.role === 'STAFF' || currentUser.role === 'ADMIN') {
-                document.getElementById('navStaffDesk').style.display = 'block';
-                loadStaffTickets();
-            }
-        }
-
-        function showView(viewId) {
-            ['viewLauncher', 'viewSupport', 'viewStaffDesk'].forEach(id => {
-                document.getElementById(id).style.display = id === viewId ? (id === 'viewSupport' ? 'grid' : 'flex') : 'none';
-            });
-        }
-
-        // AI Chatbot Function
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML += `<div class="chat-msg chat-user">${msg}</div>`;
-            input.value = '';
-
-            const res = await fetch('/api/chat/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg })
-            });
-
-            const data = await res.json();
-            chatBox.innerHTML += `<div class="chat-msg chat-bot">${data.answer}</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // Support Tickets
-        async function submitSupportTicket() {
-            const category = document.getElementById('ticketCategory').value;
-            const subject = document.getElementById('ticketSubject').value.trim();
-            const description = document.getElementById('ticketDesc').value.trim();
-
-            const res = await fetch('/api/support/ticket', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, subject, description })
-            });
-
-            const data = await res.json();
-            alert(data.message);
-            document.getElementById('ticketSubject').value = '';
-            document.getElementById('ticketDesc').value = '';
-        }
-
-        async function loadStaffTickets() {
-            const res = await fetch('/api/support/tickets');
-            const data = await res.json();
-            const body = document.getElementById('staffTicketBody');
-            
-            body.innerHTML = data.tickets.map(t => `
-                <tr>
-                    <td><b>${t.id}</b></td>
-                    <td>${t.gamertag}</td>
-                    <td>${t.category}</td>
-                    <td>${t.subject}</td>
-                    <td><span class="${t.status === 'RESOLVED' ? 'badge-resolved' : 'badge-open'}">${t.status}</span></td>
-                    <td><button onclick="resolveTicket('${t.id}')">Resolve</button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function resolveTicket(ticketId) {
-            await fetch('/api/support/ticket/reply', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ticketId, status: 'RESOLVED', reply: 'Issue resolved by Support Staff.' })
-            });
-            loadStaffTickets();
-        }
-
-        async function triggerAction(action) {
-            await fetch(`/api/launcher/${action}`, { method: 'POST' });
-        }
-
-        async function logout() {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            location.reload();
-        }
-
-        socket.on('ticket_created', () => { if (currentUser && currentUser.role !== 'PLAYER') loadStaffTickets(); });
-    </script>
 </body>
 </html>
