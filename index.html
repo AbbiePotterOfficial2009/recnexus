@@ -3,53 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecNexus Master Dashboard</title>
+    <title>RecNexus Master Control Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-gradient: linear-gradient(135deg, #f78536 0%, #eb4e28 100%); --tile-bg: #fffbf7; --tile-shadow: 0 10px 20px rgba(160, 40, 10, 0.22); --primary-orange: #f26322; --text-dark: #3a2218; --coach-gold: #ffb703; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f78536 0%, #eb4e28 100%);
+            --tile-bg: #fffbf7;
+            --tile-shadow: 0 10px 20px rgba(160, 40, 10, 0.22);
+            --primary-orange: #f26322;
+            --text-dark: #3a2218;
+            --pill-bg: #ffffff;
+            --green-online: #22c55e;
+            --red-offline: #ef4444;
+            --coach-gold: #ffb703;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Fredoka', 'Nunito', sans-serif; }
-        body { background: var(--bg-gradient); min-height: 100vh; color: var(--text-dark); padding: 24px 36px; display: flex; flex-direction: column; gap: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        .brand-logo { display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 10px 22px; border-radius: 20px; box-shadow: var(--tile-shadow); border: 3px solid #ffcca8; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-dark);
+            padding: 24px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* --- HEADER SECTION --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 10px 22px;
+            border-radius: 20px;
+            box-shadow: var(--tile-shadow);
+            border: 3px solid #ffcca8;
+        }
+
         .brand-logo h1 { color: var(--primary-orange); font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        .coach-card { background: linear-gradient(135deg, #2b1c19 0%, #170d0a 100%); color: white; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 14px; border: 3px solid var(--coach-gold); box-shadow: 0 8px 18px rgba(0,0,0,0.3); }
-        .coach-avatar { font-size: 32px; background: var(--coach-gold); border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; }
-        .coach-lvl { background: var(--primary-orange); color: white; font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-        .grid-primary { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; }
-        .tile-button { background: var(--tile-bg); border-radius: 20px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--tile-shadow); border: 3px solid #ffffff; transition: transform 0.18s; }
-        .tile-button:hover { transform: translateY(-5px) scale(1.04); }
-        .tile-icon { font-size: 36px; margin-bottom: 6px; }
-        .tile-label { font-size: 14px; font-weight: 800; }
-        .dashboard-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
-        .panel-box { background: #ffffff; border-radius: 22px; padding: 20px; box-shadow: var(--tile-shadow); border: 3px solid #ffe3d1; display: flex; flex-direction: column; gap: 14px; }
+
+        .coach-card {
+            background: linear-gradient(135deg, #2b1c19 0%, #170d0a 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 3px solid var(--coach-gold);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+        }
+
+        .coach-avatar {
+            font-size: 26px;
+            background: var(--coach-gold);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coach-lvl {
+            background: var(--primary-orange);
+            color: white;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .server-status-pill {
+            background: var(--pill-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: var(--tile-shadow);
+            border: 2px solid #ffcaa5;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--red-offline);
+            box-shadow: 0 0 10px var(--red-offline);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.online { background-color: var(--green-online); box-shadow: 0 0 10px var(--green-online); }
+
+        /* --- SECTION TITLES --- */
+        .section-title {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        /* --- MAIN CONTROLS GRID --- */
+        .grid-primary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 14px;
+        }
+
+        .tile-button {
+            background: var(--tile-bg);
+            border-radius: 20px;
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--tile-shadow);
+            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px solid #ffffff;
+        }
+
+        .tile-button:hover { transform: translateY(-5px) scale(1.04); border-color: #ffcca8; }
+        .tile-icon { font-size: 38px; margin-bottom: 6px; }
+        .tile-label { font-size: 14px; font-weight: 800; text-align: center; }
+
+        /* --- QUICK ACCESS ROW --- */
+        .quick-access-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .quick-pill {
+            background: var(--pill-bg);
+            border-radius: 18px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            box-shadow: var(--tile-shadow);
+            transition: all 0.18s ease;
+            border: 2px solid #ffffff;
+        }
+
+        .quick-pill:hover { transform: translateY(-3px); border-color: var(--primary-orange); }
+        .quick-pill-icon { font-size: 24px; }
+        .quick-pill-text { font-size: 15px; font-weight: 800; color: #4a2818; }
+
+        /* --- ACTIVE SERVICES ROW --- */
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .module-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--tile-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 3px solid #ffe3d1;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .card-title { font-size: 17px; font-weight: 800; color: var(--primary-orange); }
+        .card-badge { background: #f0f0f0; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .card-body { font-size: 12px; color: #665248; margin-bottom: 12px; font-weight: 600; word-break: break-all; }
+
+        .card-btn {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.15s ease;
+        }
+
+        .card-btn:hover { background: #d94a0b; }
+
+        /* --- MODERATION & BROADCAST CENTER --- */
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 20px;
+        }
+
+        .panel-box {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 20px;
+            box-shadow: var(--tile-shadow);
+            border: 3px solid #ffe3d1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         .player-table { width: 100%; border-collapse: collapse; }
         .player-table th { text-align: left; font-size: 12px; color: #886e63; text-transform: uppercase; padding-bottom: 10px; border-bottom: 2px solid #f0e6e1; }
         .player-table td { padding: 12px 0; font-size: 14px; font-weight: 700; border-bottom: 1px solid #f7efeb; }
+
         .btn-action { border: none; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; margin-right: 4px; }
         .btn-kick { background: #ffe8cc; color: #d97706; }
         .btn-ban { background: #fee2e2; color: #dc2626; }
         .btn-ipban { background: #450a0a; color: #ffffff; }
+
         .broadcast-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #ffd0b5; font-size: 14px; font-weight: 600; outline: none; resize: none; }
         .btn-send-broadcast { background: linear-gradient(135deg, #f26322 0%, #d94a0b 100%); color: white; border: none; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
-        .console-drawer { background: #1e120c; color: #ff9b6a; padding: 12px 18px; border-radius: 14px; font-family: monospace; font-size: 13px; }
+
+        /* --- CONSOLE DRAWER --- */
+        .console-drawer {
+            background: #1e120c;
+            color: #ff9b6a;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-family: monospace;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
+
+    <!-- TOP HEADER -->
     <div class="header">
-        <div class="brand-logo"><span style="font-size: 28px;">🎮</span><h1>RecNexus Control</h1></div>
-        <div class="coach-card">
-            <div class="coach-avatar">🧢</div>
-            <div>
-                <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 18px; font-weight: 900;">COACH</span><span class="coach-lvl">LVL 99 OWNER</span></div>
-                <div style="font-size: 12px; color: #ffca85;">Full Game & Server Access</div>
+        <div class="header-left">
+            <div class="brand-logo">
+                <span style="font-size: 28px;">🎮</span>
+                <h1>RecNexus</h1>
+            </div>
+
+            <div class="coach-card">
+                <div class="coach-avatar">🧢</div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px; font-weight: 900;">COACH</span>
+                        <span class="coach-lvl">LVL 99 OWNER</span>
+                    </div>
+                    <div style="font-size: 11px; color: #ffca85;">Master Admin Access</div>
+                </div>
             </div>
         </div>
+
+        <div class="server-status-pill">
+            <div id="statusDot" class="status-dot"></div>
+            <span id="statusText">Game API Server: Offline</span>
+        </div>
     </div>
+
+    <!-- MAIN CONTROLS TILES -->
+    <div class="section-title">Main Controls</div>
     <div class="grid-primary">
-        <div class="tile-button" onclick="triggerAction('launch-unity')"><div class="tile-icon">🚪</div><div class="tile-label">Play Game</div></div>
-        <div class="tile-button" onclick="fetchPlayers()"><div class="tile-icon">🔄</div><div class="tile-label">Refresh Users</div></div>
-        <div class="tile-button" onclick="triggerAction('stop-all')"><div class="tile-icon">🛑</div><div class="tile-label">Stop Clients</div></div>
+        <div class="tile-button" onclick="triggerAction('launch-unity')">
+            <div class="tile-icon">🚪</div>
+            <div class="tile-label">Play Game</div>
+        </div>
+        <div class="tile-button" onclick="checkApiStatus()">
+            <div class="tile-icon">⚡</div>
+            <div class="tile-label">Start API</div>
+        </div>
+        <div class="tile-button" onclick="triggerAction('launch-desktop')">
+            <div class="tile-icon">🖥️</div>
+            <div class="tile-label">Desktop App</div>
+        </div>
+        <div class="tile-button" onclick="triggerAction('launch-all')">
+            <div class="tile-icon">🚀</div>
+            <div class="tile-label">Launch All</div>
+        </div>
+        <div class="tile-button" onclick="triggerAction('stop-all')">
+            <div class="tile-icon">🛑</div>
+            <div class="tile-label">Stop All</div>
+        </div>
+        <div class="tile-button" onclick="triggerAction('git-sync')">
+            <div class="tile-icon">🔄</div>
+            <div class="tile-label">Git Sync</div>
+        </div>
+        <div class="tile-button" onclick="triggerAction('ai-studio')">
+            <div class="tile-icon">🤖</div>
+            <div class="tile-label">AI Studio</div>
+        </div>
     </div>
+
+    <!-- QUICK ACCESS ROW -->
+    <div class="section-title">Quick Access</div>
+    <div class="quick-access-row">
+        <div class="quick-pill" onclick="window.open('http://localhost:3000', '_blank')">
+            <span class="quick-pill-icon">🌐</span>
+            <span class="quick-pill-text">Open API Web Node</span>
+        </div>
+        <div class="quick-pill" onclick="triggerAction('open-unity-folder')">
+            <span class="quick-pill-icon">📁</span>
+            <span class="quick-pill-text">Open Game Folder</span>
+        </div>
+        <div class="quick-pill" onclick="triggerAction('clean-deps')">
+            <span class="quick-pill-icon">🧹</span>
+            <span class="quick-pill-text">Clean & Reinstall</span>
+        </div>
+    </div>
+
+    <!-- ACTIVE SERVICES ROW -->
+    <div class="section-title">Active Services</div>
+    <div class="cards-row">
+        <div class="module-card">
+            <div>
+                <div class="card-header">
+                    <div class="card-title">RecNexus Backend</div>
+                    <div class="card-badge">PORT 3000</div>
+                </div>
+                <div class="card-body">C:\Users\Abbie.Potter\recnexus</div>
+            </div>
+            <button class="card-btn" onclick="checkApiStatus()">Restart Backend</button>
+        </div>
+
+        <div class="module-card">
+            <div>
+                <div class="card-header">
+                    <div class="card-title">RecRoom Revival</div>
+                    <div class="card-badge">UNITY CLIENT</div>
+                </div>
+                <div class="card-body">C:\Users\Abbie.Potter\recroom-revivall</div>
+            </div>
+            <button class="card-btn" onclick="triggerAction('launch-unity')">Launch Executable</button>
+        </div>
+
+        <div class="module-card">
+            <div>
+                <div class="card-header">
+                    <div class="card-title">Desktop Panel</div>
+                    <div class="card-badge">ELECTRON APP</div>
+                </div>
+                <div class="card-body">C:\Users\Abbie.Potter\recnexus</div>
+            </div>
+            <button class="card-btn" onclick="triggerAction('launch-desktop')">Start App</button>
+        </div>
+    </div>
+
+    <!-- GAME MODERATION & BROADCAST CENTER -->
+    <div class="section-title">Live Moderation & Coach Control</div>
     <div class="dashboard-columns">
         <div class="panel-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -57,49 +377,124 @@
                 <span id="playerCountBadge" style="background: #ffe3d1; padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 12px; color: var(--primary-orange);">0 Online</span>
             </div>
             <table class="player-table">
-                <thead><tr><th>Username</th><th>Room</th><th>IP Address</th><th>Actions</th></tr></thead>
-                <tbody id="playerTableBody"><tr><td colspan="4" style="text-align: center; color: #aaa;">Loading active players...</td></tr></tbody>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Room</th>
+                        <th>IP Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="playerTableBody">
+                    <tr><td colspan="4" style="text-align: center; color: #aaa;">Loading active players...</td></tr>
+                </tbody>
             </table>
         </div>
+
         <div class="panel-box">
             <h2 style="font-size: 18px; color: var(--primary-orange);">📢 Send Coach Notification</h2>
-            <textarea id="broadcastMsg" class="broadcast-input" rows="4" placeholder="Enter game announcement..."></textarea>
-            <button class="btn-send-broadcast" onclick="sendCoachBroadcast()">🚀 Send Coach Notification</button>
+            <textarea id="broadcastMsg" class="broadcast-input" rows="4" placeholder="Enter in-game message overlay..."></textarea>
+            <button class="btn-send-broadcast" onclick="sendCoachBroadcast()">🚀 Broadcast Announcement</button>
         </div>
     </div>
-    <div class="console-drawer"><span>STATUS:</span><span id="consoleText">Coach Master Control Panel active.</span></div>
+
+    <!-- CONSOLE STATUS DRAWER -->
+    <div class="console-drawer">
+        <span>STATUS:</span>
+        <span id="consoleText">Dashboard ready. Waiting for user interaction...</span>
+    </div>
+
     <script>
         const API_URL = "http://localhost:3000";
+
+        async function checkApiStatus() {
+            const statusDot = document.getElementById("statusDot");
+            const statusText = document.getElementById("statusText");
+
+            try {
+                const res = await fetch(`${API_URL}/api/status`);
+                if (res.ok) {
+                    statusDot.classList.add("online");
+                    statusText.innerText = "Game API Server: ONLINE";
+                } else { throw new Error(); }
+            } catch (err) {
+                statusDot.classList.remove("online");
+                statusText.innerText = "Game API Server: Offline";
+            }
+        }
+
         async function fetchPlayers() {
             try {
                 const res = await fetch(`${API_URL}/api/players`);
                 const data = await res.json();
                 document.getElementById("playerCountBadge").innerText = `${data.players.length} Online`;
                 const tableBody = document.getElementById("playerTableBody");
-                if (data.players.length === 0) { tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No players online.</td></tr>`; return; }
-                tableBody.innerHTML = data.players.map(p => `<tr><td><b>${p.username}</b></td><td>${p.room}</td><td style="font-family: monospace;">${p.ip}</td><td><button class="btn-action btn-kick" onclick="moderate('kick','${p.id}')">Kick</button><button class="btn-action btn-ban" onclick="moderate('ban','${p.id}')">Ban</button><button class="btn-action btn-ipban" onclick="moderate('ipban','${p.id}')">IP Ban</button></td></tr>`).join("");
-            } catch (err) { document.getElementById("consoleText").innerText = "[API ERROR] Game server offline."; }
+                if (data.players.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No players online.</td></tr>`;
+                    return;
+                }
+                tableBody.innerHTML = data.players.map(p => `
+                    <tr>
+                        <td><b>${p.username}</b></td>
+                        <td>${p.room}</td>
+                        <td style="font-family: monospace;">${p.ip}</td>
+                        <td>
+                            <button class="btn-action btn-kick" onclick="moderate('kick','${p.id}')">Kick</button>
+                            <button class="btn-action btn-ban" onclick="moderate('ban','${p.id}')">Ban</button>
+                            <button class="btn-action btn-ipban" onclick="moderate('ipban','${p.id}')">IP Ban</button>
+                        </td>
+                    </tr>
+                `).join("");
+            } catch (err) {
+                document.getElementById("consoleText").innerText = "[API ERROR] Game server is offline.";
+            }
         }
+
         async function moderate(action, playerId) {
-            const res = await fetch(`${API_URL}/api/moderation/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ playerId }) });
-            const data = await res.json();
-            document.getElementById("consoleText").innerText = `[MODERATION] ${data.message}`;
-            fetchPlayers();
+            try {
+                const res = await fetch(`${API_URL}/api/moderation/${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId })
+                });
+                const data = await res.json();
+                document.getElementById("consoleText").innerText = `[MODERATION] ${data.message}`;
+                fetchPlayers();
+            } catch (err) {
+                document.getElementById("consoleText").innerText = `[ERROR] Action failed.`;
+            }
         }
+
         async function sendCoachBroadcast() {
             const msg = document.getElementById("broadcastMsg").value.trim();
-            if(!msg) return alert("Enter message!");
-            const res = await fetch(`${API_URL}/api/notifications/broadcast`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
-            const data = await res.json();
-            document.getElementById("consoleText").innerText = `[BROADCAST SENT] "${msg}"`;
-            document.getElementById("broadcastMsg").value = "";
+            if (!msg) return alert("Enter a message to broadcast!");
+            try {
+                const res = await fetch(`${API_URL}/api/notifications/broadcast`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                document.getElementById("consoleText").innerText = `[BROADCAST SENT] "${msg}"`;
+                document.getElementById("broadcastMsg").value = "";
+            } catch (err) {
+                document.getElementById("consoleText").innerText = "[ERROR] Could not send broadcast.";
+            }
         }
+
         async function triggerAction(action) {
-            const res = await fetch(`${API_URL}/api/launcher/${action}`, { method: 'POST' });
-            const data = await res.json();
-            document.getElementById("consoleText").innerText = `[SUCCESS] ${data.message}`;
+            try {
+                const res = await fetch(`${API_URL}/api/launcher/${action}`, { method: 'POST' });
+                const data = await res.json();
+                document.getElementById("consoleText").innerText = `[SUCCESS] ${data.message}`;
+            } catch (err) {
+                document.getElementById("consoleText").innerText = `[SYSTEM] Triggered: ${action}`;
+            }
         }
+
+        setInterval(checkApiStatus, 3000);
         setInterval(fetchPlayers, 5000);
+        checkApiStatus();
         fetchPlayers();
     </script>
 </body>
