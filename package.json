@@ -1,7 +1,7 @@
 ﻿{
   "name": "recnexus",
-  "version": "2.3.0",
-  "description": "RecNexus Master Launcher with Dual Public & Coach Authentication",
+  "version": "3.0.0",
+  "description": "RecNexus Master Portal with Lifetime Accounts, Tokenized Resets, AI FAQ Chatbot, and Staff Support Desk",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
