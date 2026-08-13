@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { cors: { origin: '*' } });
 
 const PORT = process.env.PORT || 3000;
 
@@ -33,14 +33,14 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(targetEmail, subject, htmlContent) {
     try {
         await transporter.sendMail({
-            from: '"RecNexus Support" <recnexussupport@gmail.com>',
+            from: '\"RecNexus Support\" <recnexussupport@gmail.com>',
             to: targetEmail,
             subject: subject,
             html: htmlContent
         });
         return true;
     } catch (error) {
-        console.error(`[EMAIL ERROR]:`, error);
+        console.error('[EMAIL ERROR]:', error);
         return false;
     }
 }
@@ -49,12 +49,12 @@ const RESERVED_NAMES = ['recnexusofficial', 'abbieadminofficial', 'admin', 'admi
 
 const usersDB = [
     {
-        id: "usr_admin_100",
-        username: "Coach",
-        gamertag: "Coach_Level99",
-        email: "recnexussupport@gmail.com",
-        passwordHash: bcrypt.hashSync("CoachPass99!", 10),
-        role: "ADMIN",
+        id: 'usr_admin_100',
+        username: 'AbbiePotterOfficial',
+        gamertag: 'AbbiePotterOfficial',
+        email: 'jackalbertpotteralt@gmail.com',
+        passwordHash: bcrypt.hashSync('CoachPass99!', 10),
+        role: 'ADMIN',
         isVerified: true,
         verificationCode: null,
         resetToken: null,
@@ -63,31 +63,31 @@ const usersDB = [
     }
 ];
 
-// --- AUTH ENDPOINTS ---
+// AUTH ENDPOINTS
 app.post('/api/auth/register', async (req, res) => {
     const { gamertag, email, password } = req.body;
-    if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: "All fields are required." });
+    if (!gamertag || !email || !password) return res.status(400).json({ success: false, message: 'All fields are required.' });
 
     const cleanGamertag = gamertag.trim();
     const cleanEmail = email.trim().toLowerCase();
     const lowerGamertag = cleanGamertag.toLowerCase();
 
     if (lowerGamertag !== 'abbiepotterofficial' && RESERVED_NAMES.some(r => lowerGamertag.includes(r))) {
-        return res.status(400).json({ success: false, message: "This username contains reserved system terms." });
+        return res.status(400).json({ success: false, message: 'This username contains reserved system terms.' });
     }
 
     if (usersDB.some(u => u.email.toLowerCase() === cleanEmail)) {
-        return res.status(400).json({ success: false, message: "Email already exists." });
+        return res.status(400).json({ success: false, message: 'Email already exists.' });
     }
 
     if (usersDB.some(u => u.gamertag.toLowerCase() === lowerGamertag)) {
-        return res.status(400).json({ success: false, message: "Gamertag is already taken." });
+        return res.status(400).json({ success: false, message: 'Gamertag is already taken.' });
     }
 
     const userRole = (lowerGamertag === 'abbiepotterofficial') ? 'ADMIN' : 'PLAYER';
 
     usersDB.push({
-        id: `usr_${Date.now()}`,
+        id: 'usr_' + Date.now(),
         username: cleanGamertag,
         gamertag: cleanGamertag,
         email: cleanEmail,
@@ -98,7 +98,38 @@ app.post('/api/auth/register', async (req, res) => {
         createdAt: new Date().toISOString()
     });
 
-    res.json({ success: true, redirectUrl: '/dashboard.html', message: "Account created successfully!" });
+    res.json({ success: true, redirectUrl: '/dashboard.html', message: 'Account created successfully!' });
+});
+
+// OWNER MANUAL ACCOUNT CREATION ENDPOINT
+app.post('/api/owner/create-account', (req, res) => {
+    const { gamertag, email, password, role } = req.body;
+    if (!gamertag || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Gamertag, email, and password are required.' });
+    }
+
+    const cleanGamertag = gamertag.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const assignedRole = role || 'PLAYER';
+
+    if (usersDB.some(u => u.email.toLowerCase() === cleanEmail || u.gamertag.toLowerCase() === cleanGamertag.toLowerCase())) {
+        return res.status(400).json({ success: false, message: 'User with this gamertag or email already exists.' });
+    }
+
+    const newUser = {
+        id: 'usr_' + Date.now(),
+        username: cleanGamertag,
+        gamertag: cleanGamertag,
+        email: cleanEmail,
+        passwordHash: bcrypt.hashSync(password, 10),
+        role: assignedRole,
+        isVerified: true,
+        verificationCode: null,
+        createdAt: new Date().toISOString()
+    };
+
+    usersDB.push(newUser);
+    res.json({ success: true, message: Account for \ created successfully with role \! });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -106,7 +137,7 @@ app.post('/api/auth/login', (req, res) => {
     const user = usersDB.find(u => u.gamertag.toLowerCase() === gamertag.toLowerCase() || u.email.toLowerCase() === gamertag.toLowerCase());
 
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
-        return res.status(401).json({ success: false, message: "Invalid login credentials." });
+        return res.status(401).json({ success: false, message: 'Invalid login credentials.' });
     }
 
     req.session.user = { id: user.id, username: user.username, gamertag: user.gamertag, email: user.email, role: user.role };
@@ -127,5 +158,5 @@ app.post('/api/auth/logout', (req, res) => {
 app.use(express.static(__dirname));
 
 server.listen(PORT, () => {
-    console.log(`RecNexus Server running on port ${PORT}`);
+    console.log('RecNexus Server running on port ' + PORT);
 });

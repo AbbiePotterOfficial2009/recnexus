@@ -3,7 +3,7 @@
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>RecNexus - Club & Game Owner Control Hub</title>
+    <title>RecNexus - Owner & Coach Control Hub</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0f12; color: #f3f4f6; margin: 0; padding: 20px; }
         .container { max-width: 1100px; margin: 30px auto; background: #161922; border: 1px solid #2d3748; border-radius: 12px; padding: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
@@ -37,7 +37,7 @@
     <div class='container'>
         <div id='dashboardContent'>
             <h2>👑 Rec Room & Club Owner Control Hub</h2>
-            <p>Welcome back, <strong>AbbiePotterOfficial</strong>. Managing community rooms, club access tiers, member rolls, and global instance broadcasts.</p>
+            <p>Welcome back, <strong>AbbiePotterOfficial</strong>. Managing community rooms, club access tiers, member rolls, and manual account provisioning.</p>
             
             <div class='stats-grid'>
                 <div class='stat-card'><h3>ONLINE</h3><span>Club Status</span></div>
@@ -61,12 +61,27 @@
                 </div>
 
                 <div class='control-box'>
-                    <h4>🏠 Custom Room & Clubhouse Settings</h4>
+                    <h4>➕ Manual Account Creator</h4>
                     <div class='form-group'>
-                        <label>Room Instance Controls</label>
-                        <button class='btn-action' style='margin-right: 10px;' onclick='alert("Room state saved successfully.")'>Save Room State</button>
-                        <button class='btn-action btn-danger' onclick='alert("Instance reset to default.")'>Reset Room</button>
+                        <label>New User Gamertag</label>
+                        <input type='text' id='newGamertag' class='form-control' placeholder='Enter gamertag...'>
                     </div>
+                    <div class='form-group'>
+                        <label>Email Address</label>
+                        <input type='email' id='newEmail' class='form-control' placeholder='Enter email...'>
+                    </div>
+                    <div class='form-group'>
+                        <label>Password</label>
+                        <input type='password' id='newPassword' class='form-control' placeholder='Enter password...'>
+                    </div>
+                    <div class='form-group'>
+                        <label>Role</label>
+                        <select id='newRole' class='form-control'>
+                            <option value='PLAYER'>Player / Member</option>
+                            <option value='ADMIN'>Co-Owner / Moderator</option>
+                        </select>
+                    </div>
+                    <button class='btn-action' onclick='createAccountManually()'>Create Account</button>
                 </div>
             </div>
 
@@ -118,6 +133,34 @@
             }
             alert('Club broadcast successfully sent to all members: "' + msg + '"');
             document.getElementById('broadcastMsg').value = '';
+        }
+
+        function createAccountManually() {
+            const gamertag = document.getElementById('newGamertag').value;
+            const email = document.getElementById('newEmail').value;
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+
+            if (!gamertag || !email || !password) {
+                alert('Please fill out all account fields.');
+                return;
+            }
+
+            fetch('/api/owner/create-account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gamertag, email, password, role })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    document.getElementById('newGamertag').value = '';
+                    document.getElementById('newEmail').value = '';
+                    document.getElementById('newPassword').value = '';
+                }
+            })
+            .catch(err => alert('Error connecting to server.'));
         }
 
         function logout() {
